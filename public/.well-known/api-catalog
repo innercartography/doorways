@@ -1,0 +1,17 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://two-doorways.vercel.app/",
+      "item": [
+        { "href": "https://two-doorways.vercel.app/api/markets", "title": "List all markets" }
+      ],
+      "service-desc": [
+        { "href": "https://two-doorways.vercel.app/.well-known/mcp.json", "type": "application/json", "title": "MCP Server Card — real tool-calling interface" }
+      ],
+      "service-doc": [
+        { "href": "https://two-doorways.vercel.app/readme", "type": "text/markdown", "title": "Project README" },
+        { "href": "https://two-doorways.vercel.app/resolution-spec", "type": "text/markdown", "title": "Exact settlement rules per market" }
+      ]
+    }
+  ]
+}

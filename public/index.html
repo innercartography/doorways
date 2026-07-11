@@ -279,10 +279,16 @@ https://two-doorways.vercel.app/api/mcp</div>
       <summary>Is trading here durable?</summary>
       <div class="body">No — LMSR state lives in the serverless function's memory, not a database, so it can reset between cold starts. That's fine for this demo: the part meant to be durable is the live resolution against DataSF/BLS, which reads real external state every time regardless of what the trading demo remembers.</div>
     </details>
+    <details>
+      <summary>Why no A2A Agent Card, if there's already an MCP server?</summary>
+      <div class="body">Same discipline as the oracle recipes: don't publish a capability without the substance behind it. An A2A Agent Card advertises a real agent-to-agent task-delegation endpoint (JSON-RPC, task lifecycle, the works) — we haven't built that, only tool-calling via MCP, so publishing the card would be a claim with nothing behind it. Named honestly here rather than faked, same as the attestation tier.</div>
+    </details>
 
     <div class="badges">
       <a href="/robots.txt" target="_blank" rel="noopener">robots.txt</a>
       <a href="/.well-known/mcp.json" target="_blank" rel="noopener">mcp.json</a>
+      <a href="/.well-known/api-catalog" target="_blank" rel="noopener">api-catalog</a>
+      <a href="/llms.txt" target="_blank" rel="noopener">llms.txt</a>
       <a href="/api/markets" target="_blank" rel="noopener">/api/markets</a>
       <a href="/one-pager" target="_blank" rel="noopener">one-pager</a>
       <a href="/readme?format=md" target="_blank" rel="noopener">readme.md</a>

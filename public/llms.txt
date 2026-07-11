@@ -1,0 +1,24 @@
+# Two Doorways
+
+> A hyperlocal prediction market that resolves from the city's own data — and knows the difference between an expert and an insider. Play money, real DataSF/BLS data, dual-legible for humans and agents.
+
+Built for Frontier Forecast 2026, SoMa, San Francisco.
+
+## Docs
+- [README](/readme): full pitch, domain edge, oracle recipe design, market potential
+- [One-pager](/one-pager): required one-page summary
+- [Resolution spec](/resolution-spec): exact settlement rules per market
+- [Demo script](/demo-script): 3-minute live demo runbook
+
+(Any of the above: request with `Accept: text/markdown`, or append `?format=md`, to get raw markdown instead of the HTML wrapper.)
+
+## API
+- `GET /api/markets` — list all markets with live price and declared oracle recipe
+- `GET /api/markets/:id` — one market's detail
+- `GET /api/markets/:id/resolve` — resolve live against the declared source (DataSF or BLS)
+- `POST /api/markets/:id/trade` — buy shares; blocked with an explanation if the caller is an insider on that market
+- MCP server (real, tested, streamable-http): `/api/mcp` — card at `/.well-known/mcp.json`
+- API catalog (RFC 9727): `/.well-known/api-catalog`
+
+## Notes for agents
+No auth required — everything here is public by design (play money, no accounts). Trading state is in-memory per serverless invocation, not durable; the live resolution endpoints read real external state (DataSF/BLS) every call regardless. No commerce protocols (x402/MPP/UCP/ACP) are implemented — deliberately, not omitted: see `/readme` for why.
