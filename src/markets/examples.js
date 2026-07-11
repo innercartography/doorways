@@ -13,17 +13,30 @@ const cpiMarket = createMarket({
     source: "BLS CPI-U, SF-Oakland-Hayward, 12mo ending Oct 2026",
     formula: "60% of regional CPI change, per Rent Ordinance",
     resolvesOn: "2026-11 (BLS release)",
+    // Params resolveCPIMarket() actually reads:
+    seriesId: "CUURS49BSA0",
+    currentPeriod: { year: 2026, period: "M10" },
+    priorPeriod: { year: 2025, period: "M10" },
+    formulaMultiplier: 0.6,
+    thresholdPct: 2.0,
   }),
 });
 
 // Market 2 — permit market. Settles live on stage from DataSF.
+// Permit #202512101388, 915 Bryant St (SoMa) — new 8-story mixed-use residential
+// build, 14 units. Filed 2025-12-10, still "triage" as of this writing: genuine
+// uncertainty, and exactly the uncapped/new-build tier the domain edge names.
 const permitMarket = createMarket({
-  id: "permit-somasq-issued",
-  question: "Will permit <TBD> reach 'issued' status by 2026-09-01?",
+  id: "permit-915-bryant-issued",
+  question: "Will permit #202512101388 (915 Bryant St) reach 'issued' status by 2026-09-01?",
   recipe: makeRecipe("API_RESOLVED", {
     source: "DataSF p4e4-a5a7",
     field: "current_status == 'issued'",
     resolvesOn: "2026-09-01",
+    // Params resolvePermitMarket() actually reads:
+    permitNumber: "202512101388",
+    targetStatus: "issued",
+    deadlineISO: "2026-09-01",
   }),
   // Example of the fair/foul rule: the operator on this building can influence it.
   influencers: ["mike.operator"],

@@ -20,9 +20,12 @@ permit — tries to trade it." Run the permit trade → blocked, routed to attes
 "Insiders attest. Outsiders trade. That's the conflict-of-interest problem, solved."
 
 ## 2:00–2:45 — Resolve it LIVE
-`node src/oracles/datasf-permit.js` → real permit statuses stream from DataSF.
+`node src/oracles/datasf-permit.js` → streams recent SoMa permits, then resolves
+our actual market: permit #202512101388, 915 Bryant St, live off DataSF.
 "This settles from the city's own ledger — one field, zero human judgment.
-No bookmaker. No dispute."
+No bookmaker. No dispute." (It'll read `resolved: false` — the building is
+still in triage, which is the honest answer and the whole point: the market
+isn't rigged to pay off on demo day.)
 
 ## 2:45–3:00 — The horizon
 "A neighborhood is a tribe with concentrated knowledge. Give it an instrument and
@@ -30,5 +33,12 @@ its wisdom becomes legible — to itself, and to capital on its own terms. Play 
 today, because the mechanism is the point."
 
 ## Fallback
-If venue wifi drops, use cached responses in /data. Never let the live call be the
-single point of failure — pre-fetch during setup.
+Both resolvers (`datasf-permit.js`, `bls-cpi.js`) already fail over to
+`/data/permits-cache.json` and `/data/cpi-cache.json` automatically if the live
+call errors — this was tested by killing `fetch` mid-run and confirming
+identical resolution logic runs off the cache. Nothing to do live on stage; just
+know that if wifi drops, the resolver output will say `source: ...cache...`
+instead of the live DataSF/BLS URL, and that's expected, not a failure.
+
+Re-run `node scripts/refresh-cache.js` during venue setup so the cache is as
+fresh as possible before wifi becomes a risk.

@@ -10,18 +10,43 @@
  * Docs:    https://dev.socrata.com/foundry/data.sfgov.org/p4e4-a5a7
  */
 
+const fs = require("fs");
+const path = require("path");
+
 const DATASET = "https://data.sfgov.org/resource/p4e4-a5a7.json";
+const CACHE_PATH = path.join(__dirname, "..", "..", "data", "permits-cache.json");
+
+/** Read the pre-fetched fallback cache. Returns null if it isn't there. */
+function readCache() {
+  try {
+    return JSON.parse(fs.readFileSync(CACHE_PATH, "utf8"));
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Fetch a single permit record by permit number.
- * Uses SoQL ($where) to filter server-side.
+ * Uses SoQL ($where) to filter server-side. Falls back to the pre-fetched
+ * /data cache if the live call fails (venue wifi, DataSF outage) — the demo
+ * must never depend on live network as its single point of failure.
  */
 async function fetchPermit(permitNumber) {
-  const url = `${DATASET}?permit_number=${encodeURIComponent(permitNumber)}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`DataSF returned ${res.status}`);
-  const rows = await res.json();
-  return rows[0] || null;
+  try {
+    const url = `${DATASET}?permit_number=${encodeURIComponent(permitNumber)}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`DataSF returned ${res.status}`);
+    const rows = await res.json();
+    if (rows[0]) return { record: rows[0], source: "live" };
+    throw new Error("no rows from live endpoint");
+  } catch (err) {
+    const cache = readCache();
+    const cached =
+      cache?.primary?.find((r) => r.permit_number === permitNumber) ||
+      cache?.recentSoMa?.find((r) => r.permit_number === permitNumber);
+    if (cached) return { record: cached, source: "cache", cachedAt: cache.fetchedAt, liveError: err.message };
+    return { record: null, source: "none", liveError: err.message };
+  }
 }
 
 /**
@@ -34,7 +59,7 @@ async function fetchPermit(permitNumber) {
  * @returns {Promise<{resolved:boolean, outcome:('YES'|'NO'|null), evidence:object}>}
  */
 async function resolvePermitMarket(market) {
-  const record = await fetchPermit(market.permitNumber);
+  const { record, source, cachedAt, liveError } = await fetchPermit(market.permitNumber);
   const now = new Date();
   const deadline = new Date(market.deadlineISO);
 
@@ -43,7 +68,7 @@ async function resolvePermitMarket(market) {
     return {
       resolved: now > deadline,
       outcome: now > deadline ? "NO" : null,
-      evidence: { note: "permit not found in dataset", checkedAt: now.toISOString() },
+      evidence: { note: "permit not found in dataset or cache", liveError, checkedAt: now.toISOString() },
     };
   }
 
@@ -59,10 +84,10 @@ async function resolvePermitMarket(market) {
     outcome: reachedInTime ? "YES" : now > deadline ? "NO" : null,
     evidence: {
       permit_number: record.permit_number,
-      current_status: record.current_status,
+      current_status: record.current_status || record.status,
       status_date: statusDate,
-      street: `${record.street_number || ""} ${record.street_name || ""}`.trim(),
-      source: DATASET,
+      street: `${record.street_number || ""} ${record.street_name || ""} ${record.street_suffix || ""}`.trim(),
+      source: source === "cache" ? `${CACHE_PATH} (cached ${cachedAt})` : DATASET,
       checkedAt: now.toISOString(),
     },
   };
@@ -80,9 +105,13 @@ if (require.main === module) {
     for (const r of rows) {
       console.log(
         `#${r.permit_number}  ${r.street_number || ""} ${r.street_name || ""}  ` +
-        `status=${r.current_status}  (${r.current_status_date || r.status_date || "n/a"})`
+        `status=${r.current_status || r.status}  (${r.current_status_date || r.status_date || "n/a"})`
       );
     }
-    console.log("\nEndpoint live. Wire a real permit_number into resolvePermitMarket() for the demo.");
+
+    console.log("\nResolving the live demo market — permit 202512101388, 915 Bryant St:");
+    const { permitMarket } = require("../markets/examples");
+    const result = await resolvePermitMarket(permitMarket.recipe.params);
+    console.log(JSON.stringify(result, null, 2));
   })().catch((e) => console.error("Resolver error:", e.message));
 }

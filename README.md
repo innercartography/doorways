@@ -75,9 +75,11 @@ two-doorways/
 │   ├── oracles/
 │   │   ├── recipe.js         ← recipe interface + the 3 recipe types
 │   │   ├── datasf-permit.js  ← LIVE resolver — reads DataSF p4e4-a5a7
-│   │   └── bls-cpi.js        ← CPI resolver stub
+│   │   └── bls-cpi.js        ← LIVE resolver — reads BLS CPI-U SF-Oakland-Hayward
 │   └── ui/
 │       └── index.html        ← the Two Doorways scrollytelling explainer
+├── scripts/
+│   └── refresh-cache.js       ← re-fetch live data into /data before stage
 ├── data/                      ← cached API responses for offline demo safety
 └── docs/
     ├── ONE-PAGER.md          ← the required one-page summary
@@ -93,7 +95,16 @@ open src/ui/index.html
 
 # Test the live permit resolver against DataSF (no API key needed)
 node src/oracles/datasf-permit.js
+
+# Test the live CPI resolver against BLS (no API key needed)
+node src/oracles/bls-cpi.js
+
+# Refresh the /data offline-fallback cache (run during venue setup)
+node scripts/refresh-cache.js
 ```
+
+Both resolvers fail over to the cached snapshots in `/data` automatically if
+the live call errors, so a dead venue wifi doesn't kill the demo.
 
 ## Deliverables checklist (per hackathon guide)
 

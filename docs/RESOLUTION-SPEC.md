@@ -13,13 +13,18 @@ oracle recipe made explicit — no post-hoc reinterpretation allowed.
 - **Uncertainty is genuine:** the CPI input is unknown until the BLS release.
 
 ## Market 2 — Permit Issued
-- **Question:** Will permit <NUMBER> reach 'issued' status by 2026-09-01?
+- **Question:** Will permit #202512101388 (915 Bryant St, SoMa — new 8-story
+  mixed-use residential, 14 units) reach 'issued' status by 2026-09-01?
 - **Recipe:** API-resolved (DataSF).
 - **Source:** DataSF Building Permits, dataset p4e4-a5a7.
-- **Field:** current_status == "issued", with current_status_date <= deadline.
+- **Field:** current_status == "issued", with status_date <= deadline.
 - **Resolves:** YES if the field shows issued on/before deadline; NO if deadline
   passes without it; settlement reads the live record at resolution time.
+  Filed 2025-12-10, still "triage" as of 2026-07-11 — genuinely open.
 - **Provenance:** every settlement stores the raw record + checkedAt timestamp.
+- **Fallback:** if the live DataSF call fails, the resolver reads the last
+  pre-fetched snapshot in `/data/permits-cache.json` and labels the evidence
+  `source` accordingly — resolution logic is identical either way.
 
 ## Method discipline
 For any public-data-computed market (e.g. rent buckets from gdc7-dmcn), the exact
