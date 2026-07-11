@@ -48,8 +48,9 @@ Participants who can move a resolution are flagged — barred from trading it, r
 ## What we ship today
 
 - **Create** — a market factory: pose a neighborhood question, attach a declared oracle recipe.
-- **Trade** — a play-money automated market maker (LMSR) quotes a live price, no counterparty needed. Accuracy scored in reputation, not dollars → no regulatory exposure.
+- **Trade** — a play-money automated market maker (LMSR) quotes a live, *shared* price — every trade is an immutable record in a durable log (Vercel Blob), replayed to compute the price, so any two callers (human or agent) always see the same market. No counterparty needed. Accuracy scored in reputation, not dollars → no regulatory exposure.
 - **Resolve** — the permit market settles live from DataSF, end to end, on stage.
+- **Try it yourself** — [`/agent`](https://two-doorways.vercel.app/agent), linked via a QR code on the homepage: one curl (or one tap, no terminal needed) places a real trade, another triggers the insider gate's real 403, and a live feed shows everyone's trades landing in the same market in real time.
 
 Two live SoMa markets. One resolution you can watch happen. **Play money on purpose** — the real-money regulatory picture (Kalshi/CFTC) is unsettled, and our contribution is the mechanism, not the wagering.
 
@@ -78,6 +79,8 @@ two-doorways/
 ├── package.json
 ├── public/                    ← deployed web root
 │   ├── index.html             ← the scrollytelling explainer — also a live tool + WebMCP surface
+│   ├── agent.html             ← /agent — QR-linked, one-tap starter trade + insider-gate demo
+│   ├── vendor/qrcode*.js      ← vendored qrcode-generator (Kazuhiko Arase, MIT), no CDN
 │   ├── robots.txt              ← AI bot allow rules + Content Signals
 │   ├── sitemap.xml
 │   └── .well-known/mcp.json   ← MCP Server Card (SEP-1649 discovery)
@@ -85,10 +88,14 @@ two-doorways/
 │   ├── markets/index.js       ← GET list all markets
 │   ├── markets/[id]/index.js  ← GET one market's price + recipe
 │   ├── markets/[id]/resolve.js← GET live resolution
-│   ├── markets/[id]/trade.js  ← POST a trade (insider gate enforced)
+│   ├── markets/[id]/trade.js  ← POST a trade (insider gate enforced, durable log)
+│   ├── activity.js            ← GET the shared live trade feed (also lazily seeds empty markets)
+│   ├── starter-pack.js        ← GET a one-call onboarding trade for a fresh pseudonymous trader
 │   ├── mcp.js                 ← real MCP server (streamable-http, stateless)
 │   ├── docs/[name].js         ← markdown content negotiation for the docs below
-│   └── _lib/registry.js       ← shared market registry (REST + MCP both use this)
+│   └── _lib/
+│       ├── registry.js        ← shared market registry (REST + MCP both use this)
+│       └── tradelog.js        ← event-sourced trade log on Vercel Blob — the durable shared AMM state
 ├── src/
 │   ├── markets/               ← market factory + market definitions
 │   │   ├── factory.js         ← create a market from (question, oracle recipe)
@@ -138,6 +145,11 @@ Deployed, the site is dual-legible: humans get the scrollytelling page, agents
 get `curl <site>/api/markets`, a real MCP server at `/api/mcp`, and markdown
 versions of every doc (`/one-pager`, `/readme`, etc. — send `Accept:
 text/markdown` or just curl them). See section 08 on the live page for the why.
+
+`/agent` is the same idea aimed at a human holding a phone: scan the QR on
+the homepage (or just visit the URL) and tap through the exact same calls
+an agent would curl — one starter trade, one insider-gate 403 — no
+terminal required.
 
 Both resolvers fail over to the cached snapshots in `/data` automatically if
 the live call errors, so a dead venue wifi doesn't kill the demo.

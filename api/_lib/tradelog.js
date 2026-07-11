@@ -76,4 +76,19 @@ async function recentActivity(limit = 30) {
   return Promise.all(sorted.map((b) => fetch(b.url).then((r) => r.json())));
 }
 
-module.exports = { appendTrade, listTrades, replay, currentPrices, placeTrade, recentActivity };
+/**
+ * If a market has never traded, place exactly one small labeled trade so
+ * the activity feed and price aren't sitting untouched before the first
+ * real visitor. Bounded and one-shot per market — not a perpetual bot,
+ * and never disguised as a real person (userId always "seed-bot").
+ */
+async function ensureSeeded(marketId, b) {
+  const trades = await listTrades(marketId);
+  if (trades.length > 0) return null;
+  const outcome = Math.random() < 0.5 ? "YES" : "NO";
+  const shares = 2 + Math.floor(Math.random() * 2);
+  const { record } = await placeTrade(marketId, b, "seed-bot", outcome, shares);
+  return record;
+}
+
+module.exports = { appendTrade, listTrades, replay, currentPrices, placeTrade, recentActivity, ensureSeeded };

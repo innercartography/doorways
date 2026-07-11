@@ -13,11 +13,17 @@ deterministic — landlords max the allowable increase every year, so there's no
 market. The uncertainty is in the CPI input and the uncapped tier. Knowing that is
 the difference between a live market and a dead one." (This is the credibility beat.)
 
-## 1:15–2:00 — Trade it (live, in terminal or UI)
-Run a couple of outsider trades on the CPI market; show prices move.
+## 1:15–2:00 — Trade it (the room does this, not just you)
+Point at the QR code in the hero: "Scan it, or go to two-doorways.vercel.app/agent
+— no login, no wallet." Let a couple of judges/audience members actually scan and
+tap "run it now" on their own phones while you keep talking; their trades land in
+the same shared market and show up in the live feed on the projector within
+seconds — this isn't a per-person sandbox, everyone's hitting the same price.
 Then: "Now watch what happens when an insider — the operator who can influence a
-permit — tries to trade it." Run the permit trade → blocked, routed to attestation.
-"Insiders attest. Outsiders trade. That's the conflict-of-interest problem, solved."
+permit — tries to trade it." Tap the insider button on `/agent` (or run the permit
+trade from a terminal) → blocked live, 403, routed to attestation.
+"Insiders attest. Outsiders trade. That's the conflict-of-interest problem, solved
+— and you just watched it enforce itself, not took my word for it."
 
 ## 2:00–2:45 — Resolve it LIVE
 Scroll to section 07 ("The wire") on the deployed site and click **"Resolve

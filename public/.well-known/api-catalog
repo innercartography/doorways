@@ -3,7 +3,10 @@
     {
       "anchor": "https://two-doorways.vercel.app/",
       "item": [
-        { "href": "https://two-doorways.vercel.app/api/markets", "title": "List all markets" }
+        { "href": "https://two-doorways.vercel.app/api/markets", "title": "List all markets" },
+        { "href": "https://two-doorways.vercel.app/api/starter-pack", "title": "One-call onboarding trade for a fresh pseudonymous trader" },
+        { "href": "https://two-doorways.vercel.app/api/activity", "title": "Live shared trade feed across every market" },
+        { "href": "https://two-doorways.vercel.app/agent", "title": "Human-friendly agent onboarding page (QR-linked from homepage)" }
       ],
       "service-desc": [
         { "href": "https://two-doorways.vercel.app/.well-known/mcp.json", "type": "application/json", "title": "MCP Server Card — real tool-calling interface" }

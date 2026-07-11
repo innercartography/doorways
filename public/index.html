@@ -296,14 +296,19 @@ https://two-doorways.vercel.app/api/mcp</div>
     </details>
     <details>
       <summary>Is trading here durable?</summary>
-      <div class="body">No — LMSR state lives in the serverless function's memory, not a database, so it can reset between cold starts. That's fine for this demo: the part meant to be durable is the live resolution against DataSF/BLS, which reads real external state every time regardless of what the trading demo remembers.</div>
+      <div class="body">Yes — every trade is written as its own immutable record to a shared log (Vercel Blob), and the price you see is replayed from that full history, not held in one function's memory. Two different people curling this at the same moment both land in the same market, the same way two Postgres clients see the same table. One caveat, named honestly: writes aren't wrapped in a database transaction, so two trades landing in the same instant could theoretically interleave — acceptable for a demo, not how we'd ship a real-money version.</div>
     </details>
     <details>
       <summary>Why no A2A Agent Card, if there's already an MCP server?</summary>
       <div class="body">Same discipline as the oracle recipes: don't publish a capability without the substance behind it. An A2A Agent Card advertises a real agent-to-agent task-delegation endpoint (JSON-RPC, task lifecycle, the works) — we haven't built that, only tool-calling via MCP, so publishing the card would be a claim with nothing behind it. Named honestly here rather than faked, same as the attestation tier.</div>
     </details>
+    <details>
+      <summary>Who is "seed-bot" in the activity feed?</summary>
+      <div class="body">There's no cron on this deploy, so a market sitting at an untouched, never-traded 50/50 would look dead the moment this page goes live. Any market with zero trades gets exactly one small trade from a userId literally named <code>seed-bot</code> — bounded, one-shot per market, never disguised as a person. Everything after that first trade is real: you, or whoever scans the QR next.</div>
+    </details>
 
     <div class="badges">
+      <a href="/agent" target="_blank" rel="noopener">/agent — try it</a>
       <a href="/robots.txt" target="_blank" rel="noopener">robots.txt</a>
       <a href="/.well-known/mcp.json" target="_blank" rel="noopener">mcp.json</a>
       <a href="/.well-known/api-catalog" target="_blank" rel="noopener">api-catalog</a>
