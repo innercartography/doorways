@@ -359,16 +359,16 @@ function updSlider(){
 }
 s.addEventListener('input',()=>{userTouchedSlider=true;updSlider()});updSlider();
 
-// ?shot=1 — screenshot mode: skip the scroll-reveal fade AND the smooth
-// anchor-scroll entirely, both of which are 0.9s/browser-timed animations
-// that a single-frame headless capture would otherwise race and catch
-// mid-transition. Real visitors never see this state.
-if (new URLSearchParams(location.search).has('shot')) {
+// ?shot=1 (or ?shot=<section-id>) — screenshot mode: skip the reveal
+// fade, and instead of scrolling to a target section (a race against
+// headless capture timing), hide every other section so the target one
+// simply IS the page, always at scrollY 0. Real visitors never see this.
+const shotParam = new URLSearchParams(location.search).get('shot');
+if (shotParam !== null) {
   document.documentElement.style.scrollBehavior='auto';
   document.querySelectorAll('.reveal').forEach(el=>{el.style.transition='none';el.classList.add('in')});
-  if (location.hash) {
-    const target=document.querySelector(location.hash);
-    if (target) target.scrollIntoView({behavior:'instant',block:'start'});
+  if (shotParam && shotParam !== '1') {
+    document.querySelectorAll('section').forEach(sec=>{ if (sec.id !== shotParam) sec.style.display='none'; });
   }
 } else {
   const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.18});
