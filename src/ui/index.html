@@ -114,12 +114,12 @@ a{color:var(--gold)}
           <p>You track regional CPI and think the market's wrong. Buy the mispriced side, profit when the number posts. <b>Your analysis becomes the signal.</b></p>
         </div>
         <div class="door">
-          <h4>Doorway two · Tenant</h4>
-          <p>A high allowable increase raises what you'll owe next March. Buy YES on your own bad news — <b id="hedgePay">the payout offsets the hike</b>.</p>
+          <h4>Doorway two · Renter</h4>
+          <p>Same price, read differently: not a trade, just the number you check before your lease renews — a free, honest read on next March, before the Rent Board makes it official. <b id="hedgePay">no payout, just the odds</b>.</p>
         </div>
       </div>
     </div>
-    <p class="dim">Same shares, two motivations. The trader brings accuracy. The tenant brings purpose. Neither is gambling.</p>
+    <p class="dim">Same price, two uses. The trader brings accuracy by trading it. The renter brings attention by checking it. Neither is gambling.</p>
   </div>
 </section>
 
@@ -220,7 +220,7 @@ function upd(){
   document.getElementById('probVal').textContent=p+'%';
   document.getElementById('yesCost').textContent='$'+(p/100).toFixed(2);
   document.getElementById('noCost').textContent='$'+((100-p)/100).toFixed(2);
-  document.getElementById('hedgePay').textContent = p<50 ? 'cheap cover while the market doubts it' : 'the payout offsets the hike';
+  document.getElementById('hedgePay').textContent = p<50 ? 'right now, the crowd doubts a big jump' : 'right now, the crowd expects a bigger jump';
 }
 s.addEventListener('input',upd);upd();
 const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.18});

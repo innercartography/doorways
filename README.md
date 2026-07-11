@@ -8,7 +8,7 @@ Built for Frontier Forecast 2026 · SoMa, San Francisco.
 
 ## The one-liner
 
-One market question has two doorways. To a trader tracking regional CPI, it's a mispriced probability to correct. To a tenant, it's insurance against next year's rent increase. Same shares, two motivations — accuracy from one side, purpose from the other. Neither is gambling.
+One market question has two doorways. To a trader tracking regional CPI, it's a mispriced probability to correct. To a tenant, it's an early read on next year's rent — before the Rent Board makes it official. Same price, two motivations — accuracy from one side, foresight from the other. Neither is gambling.
 
 ## Why this, why here
 
@@ -52,6 +52,14 @@ Participants who can move a resolution are flagged — barred from trading it, r
 - **Resolve** — the permit market settles live from DataSF, end to end, on stage.
 
 Two live SoMa markets. One resolution you can watch happen. **Play money on purpose** — the real-money regulatory picture (Kalshi/CFTC) is unsettled, and our contribution is the mechanism, not the wagering.
+
+## Market potential — two doorways, two buyers, one flywheel
+
+**Doorway 1 — the independent operator (signal, sooner).** Institutional owners already underwrite everything that matters to them — CoStar, Yardi Matrix, in-house analysts, broker relationships, and increasingly AI-driven monitoring of public filings. That's roughly 3% of San Francisco's rental stock, and we don't compete there — that edge only gets thinner as AI keeps commoditizing public-record tracking. The other ~97% is small, independent owner-operators with none of that infrastructure, running on gut feel and informal neighborhood word-of-mouth — the exact position this project's own founder knows firsthand. AI can automate watching a database; it can't automate a contractor who knows a job is delayed or a neighbor who noticed scaffolding go up. That dispersed, undigitized knowledge is what a prediction market aggregates — the "attestation" tier of the recipe, structurally out of reach of scraping. We're not selling faster access to the public record; we're selling the neighborhood's collective private judgment, to the owners who currently have no way to access it at all. And because this only requires participants to value being *right* — reputation, not cash — it already works on play money, the same reason reputation-scored forecasting platforms sell aggregated forecasts today without real-money stakes.
+
+**Doorway 2 — the renter (signal, viral, free).** Not a hedge — a number. ~71% of San Francisco's rental units are under rent control, and most of the rest fall under AB 1482's state cap, so most SF renters face the same annual formula: allowable increase = a fixed share of regional CPI. We surface the CPI market's live price directly as a free, shareable stat — "here's the crowd's current odds your rent jumps more than 2% next year" — the same mechanic that makes a Zestimate or a Spotify Wrapped spread on its own. No payout, no money movement, no insurance question — it's an informational estimate, not a promise. (We looked hard at a literal rent hedge here — buy the side that pays out if your capped increase comes in high — and killed it: paying out specifically because *your* rent went up reads as personal-loss indemnification, i.e. insurance, regulated state-by-state with actuarial reserves, a much harder bar than the event-contract lane Doorway 1 lives in. Not worth the exposure for a feature that doesn't need it.)
+
+**Why this is one flywheel, not two businesses:** every renter who checks their number is a potential participant adding an opinion to that same CPI market, and every neighborhood that gets attention this way is a candidate for the next permit market. Consumer virality on the renter side feeds the participant density that makes the operator signal on the other side worth paying for.
 
 ## The horizon
 
@@ -118,8 +126,8 @@ the live call errors, so a dead venue wifi doesn't kill the demo.
 
 | Criterion | Weight | Where we win it |
 |-----------|--------|-----------------|
-| Real-world Impact | 25% | Three-tier domain edge; renter-hedge use case; public-data settlement |
+| Real-world Impact | 25% | Three-tier domain edge; free renter-signal use case; public-data settlement |
 | Technical Execution | 25% | Working LMSR + live DataSF resolution end-to-end |
 | Innovation | 20% | Insiders-attest-outsiders-trade; declared oracle recipes |
-| Market Potential | 20% | Tribe-scale markets; agent resolvers horizon |
+| Market Potential | 20% | Two-buyer flywheel: signal to the 97%-of-market independent operators CoStar ignores (sooner, reputation-only), fed by a free viral renter-facing signal (no hedge, no regulatory exposure) |
 | Presentation | 10% | Scrollytelling explainer + tight deck |
