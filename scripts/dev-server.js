@@ -45,6 +45,10 @@ function parseBody(req) {
 function serveStatic(reqPath, res) {
   let filePath = path.join(PUBLIC, decodeURIComponent(reqPath));
   if (reqPath === "/") filePath = path.join(PUBLIC, "index.html");
+  // mirror vercel.json's "cleanUrls": true — /agent -> public/agent.html
+  if ((!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) && fs.existsSync(filePath + ".html")) {
+    filePath += ".html";
+  }
   if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
     res.writeHead(404); res.end("Not found: " + reqPath); return;
   }
@@ -73,6 +77,12 @@ const server = http.createServer(async (req, res) => {
     if (m) { req.query.id = m[1]; return require(path.join(ROOT, "api", "markets", "[id]", "index.js"))(req, res); }
     if (pathname === "/api/mcp") {
       return require(path.join(ROOT, "api", "mcp.js"))(req, res);
+    }
+    if (pathname === "/api/activity") {
+      return require(path.join(ROOT, "api", "activity.js"))(req, res);
+    }
+    if (pathname === "/api/starter-pack") {
+      return require(path.join(ROOT, "api", "starter-pack.js"))(req, res);
     }
     m = pathname.match(/^\/api\/docs\/([^/]+)$/);
     if (m) { req.query.name = m[1]; return require(path.join(ROOT, "api", "docs", "[name].js"))(req, res); }

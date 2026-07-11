@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Two Doorways — for agents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,900&family=JetBrains+Mono:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0b1f1e;--teal:#123a38;--teal-glow:#2a7a74;
+  --cream:#f2ead8;--cream-dim:#c9c0ab;--gold:#d9a441;--gold-dim:#8a6a2e;--no-red:#b45a4a;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--ink);color:var(--cream);font-family:'Fraunces',serif;font-weight:300;line-height:1.6}
+main{max-width:680px;margin:0 auto;padding:8vh 24px 12vh}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:1.2rem}
+h1{font-size:clamp(2.2rem,7vw,3.2rem);font-weight:900;font-variation-settings:'opsz' 144;line-height:1.05;margin-bottom:1rem}
+h2{font-size:1.2rem;font-weight:600;margin:2.4rem 0 .8rem}
+p{font-size:1.05rem;margin-bottom:1rem;color:var(--cream)}
+p.dim{color:var(--cream-dim)}
+a{color:var(--gold)}
+.rule{width:56px;height:1px;background:var(--gold);margin:1.6rem 0}
+.curl{background:rgba(0,0,0,.35);border:1px solid rgba(217,164,65,.25);border-radius:6px;padding:1rem 1.1rem;font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--teal-glow);margin:.8rem 0;overflow-x:auto;white-space:pre}
+.btn{font-family:'JetBrains Mono',monospace;font-size:.85rem;letter-spacing:.06em;text-transform:uppercase;background:var(--gold);color:var(--ink);border:none;padding:.8rem 1.4rem;border-radius:4px;cursor:pointer;font-weight:600;margin-right:.6rem;margin-bottom:.6rem}
+.btn:hover{background:#e8b654}
+.btn:disabled{opacity:.5;cursor:wait}
+.btn.foul{background:transparent;color:var(--no-red);border:1px solid var(--no-red)}
+.btn.foul:hover{background:rgba(180,90,74,.15)}
+.log{margin-top:1rem;border:1px solid rgba(217,164,65,.3);border-radius:6px;background:rgba(0,0,0,.35);font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:1.7;padding:1.1rem 1.2rem;min-height:2rem;white-space:pre-wrap;word-break:break-word;color:var(--cream-dim)}
+.log .ok{color:var(--teal-glow)}
+.log .blocked{color:var(--no-red)}
+.qr-wrap{background:var(--cream);padding:14px;border-radius:8px;display:inline-block;margin:1.4rem 0}
+.feed{margin-top:.8rem;border:1px solid rgba(217,164,65,.25);border-radius:6px;overflow:hidden}
+.feed-row{padding:.6rem .9rem;border-bottom:1px solid rgba(217,164,65,.15);font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--cream-dim);display:flex;justify-content:space-between;gap:1rem}
+.feed-row:last-child{border-bottom:none}
+.feed-row b{color:var(--cream)}
+footer{text-align:center;padding-top:6vh;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-dim)}
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Two Doorways · for agents</div>
+  <h1>One call. A real trade. A real block.</h1>
+  <p class="dim">Everything below is live against the same market state a human sees on <a href="/">the main page</a> — not a sandboxed demo copy.</p>
+
+  <div id="qrHolder" class="qr-wrap"></div>
+  <p class="dim">That QR code is this page's own URL. Scan it, or just tap the buttons below right now.</p>
+
+  <div class="rule"></div>
+
+  <h2>1 · Get a trade of your own</h2>
+  <p>No setup, no market id to pick. This assigns you a fresh trader id, buys a small position on the CPI market, and hands back price-before/price-after — the same response your own agent gets.</p>
+  <div class="curl">curl https://two-doorways.vercel.app/api/starter-pack</div>
+  <button class="btn" id="runStarter">Run it now, in this browser</button>
+  <div class="log" id="starterLog">Nothing yet — press the button, or run the curl yourself.</div>
+
+  <h2>2 · Try it as an insider</h2>
+  <p class="dim">The permit market is watching one specific building. The operator behind that permit is barred from trading it — insiders attest, they don't trade. Here's the exact call that proves it, blocked live:</p>
+  <div class="curl">curl -X POST https://two-doorways.vercel.app/api/markets/permit-915-bryant-issued/trade \
+  -H "Content-Type: application/json" \
+  -d '{"userId":"mike.operator","outcome":"YES","shares":5}'</div>
+  <button class="btn foul" id="runInsider">Try it now — watch it get blocked</button>
+  <div class="log" id="insiderLog">Nothing yet — this one should fail. That's the point.</div>
+
+  <h2>3 · Connect an agent directly</h2>
+  <p class="dim">MCP client, any transport that speaks streamable HTTP:</p>
+  <div class="curl">https://two-doorways.vercel.app/api/mcp
+tools: list_markets, get_market, resolve_market, trade</div>
+
+  <h2>4 · Watch the room trade</h2>
+  <p class="dim">Every trade above lands here — yours, everyone else's who's scanned this tonight, and a small seed trader keeping the feed warm between scans.</p>
+  <div class="feed" id="feed"><div class="feed-row"><span>loading…</span></div></div>
+
+  <footer>Two Doorways · Frontier Forecast 2026</footer>
+</main>
+
+<script src="/vendor/qrcode.min.js"></script>
+<script src="/vendor/qrcode-utf8.min.js"></script>
+<script>
+// QR code: vendored qrcode-generator (Kazuhiko Arase, MIT) via /vendor —
+// a widely-used, tested library, not a hand-rolled encoder. Renders this
+// page's own URL, no external image service, no network call.
+try {
+  var qr = qrcode(0, 'M'); // typeNumber 0 = auto-size
+  qr.addData(window.location.href);
+  qr.make();
+  document.getElementById('qrHolder').innerHTML = qr.createSvgTag({ cellSize: 5, margin: 2, scalable: true });
+  document.querySelector('#qrHolder svg').setAttribute('width', '176');
+  document.querySelector('#qrHolder svg').setAttribute('height', '176');
+} catch (e) {
+  document.getElementById('qrHolder').innerHTML = '<p style="color:#0b1f1e;font-family:monospace;font-size:11px;max-width:140px">QR render failed — link still works: ' + window.location.href + '</p>';
+}
+
+// ── Run the starter pack live, in the browser ───────────────────────────
+document.getElementById('runStarter').addEventListener('click', async (e) => {
+  const btn = e.currentTarget, log = document.getElementById('starterLog');
+  btn.disabled = true; log.textContent = 'calling /api/starter-pack…';
+  try {
+    const r = await fetch('/api/starter-pack');
+    const d = await r.json();
+    log.innerHTML = '<span class="ok">'+d.welcome+'</span>\n'+d.market+'\n\nyou bought: '+d.you_bought+'\nprice before: YES '+d.price_before.YES+' / NO '+d.price_before.NO+'\nprice after:  YES '+d.price_after.YES+' / NO '+d.price_after.NO+'\n\n'+d.what_just_happened;
+    loadFeed();
+  } catch (err) { log.textContent = 'request failed: '+err.message; }
+  finally { btn.disabled = false; }
+});
+
+// ── Run the insider-blocked trade live, in the browser ──────────────────
+document.getElementById('runInsider').addEventListener('click', async (e) => {
+  const btn = e.currentTarget, log = document.getElementById('insiderLog');
+  btn.disabled = true; log.textContent = 'calling POST /api/markets/permit-915-bryant-issued/trade as mike.operator…';
+  try {
+    const r = await fetch('/api/markets/permit-915-bryant-issued/trade', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ userId: 'mike.operator', outcome: 'YES', shares: 5 })
+    });
+    const d = await r.json();
+    if (r.status === 403) {
+      log.innerHTML = '<span class="blocked">403 blocked, as declared:</span>\n\nreason: '+d.reason+'\n\n'+d.note;
+    } else {
+      log.textContent = 'unexpected: HTTP '+r.status+'\n'+JSON.stringify(d,null,2);
+    }
+  } catch (err) { log.textContent = 'request failed: '+err.message; }
+  finally { btn.disabled = false; }
+});
+
+// ── Live activity feed ───────────────────────────────────────────────────
+async function loadFeed(){
+  const feed = document.getElementById('feed');
+  try {
+    const r = await fetch('/api/activity');
+    const d = await r.json();
+    if (!d.trades.length) { feed.innerHTML = '<div class="feed-row"><span>No trades yet — be the first.</span></div>'; return; }
+    feed.innerHTML = d.trades.map(t => {
+      const time = new Date(t.at).toLocaleTimeString();
+      return '<div class="feed-row"><span><b>'+t.userId+'</b> bought '+t.shares+' '+t.outcome+'</span><span>'+time+'</span></div>';
+    }).join('');
+  } catch (e) { feed.innerHTML = '<div class="feed-row"><span>Feed unavailable right now.</span></div>'; }
+}
+loadFeed();
+setInterval(loadFeed, 6000);
+</script>
+</body>
+</html>

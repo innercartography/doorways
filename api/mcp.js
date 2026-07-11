@@ -12,6 +12,7 @@ const { McpServer } = require("@modelcontextprotocol/sdk/server/mcp.js");
 const { StreamableHTTPServerTransport } = require("@modelcontextprotocol/sdk/server/streamableHttp.js");
 const { z } = require("zod");
 const { listMarkets, getEntry, summarize } = require("./_lib/registry");
+const { placeTrade } = require("./_lib/tradelog");
 
 function textResult(value) {
   return { content: [{ type: "text", text: JSON.stringify(value, null, 2) }] };
@@ -23,7 +24,7 @@ function buildServer() {
   server.registerTool(
     "list_markets",
     { description: "List all live Two Doorways prediction markets with their current LMSR prices and declared oracle recipe." },
-    async () => textResult({ markets: listMarkets() })
+    async () => textResult({ markets: await listMarkets() })
   );
 
   server.registerTool(
@@ -35,7 +36,7 @@ function buildServer() {
     async ({ marketId }) => {
       const entry = getEntry(marketId);
       if (!entry) return textResult({ error: `unknown market id: ${marketId}` });
-      return textResult(summarize(entry.market));
+      return textResult(await summarize(entry.market));
     }
   );
 
@@ -57,7 +58,7 @@ function buildServer() {
     "trade",
     {
       description:
-        "Buy shares of an outcome on a market. Blocked with an explanation if the caller is flagged as an insider on that specific market (can influence its resolution) — insiders attest, they don't trade. State is in-memory for this demo, not durable across cold starts.",
+        "Buy shares of an outcome on a market. Blocked with an explanation if the caller is flagged as an insider on that specific market (can influence its resolution) — insiders attest, they don't trade. Trades persist in a shared log (Vercel Blob) — every caller, human or agent, sees the same price.",
       inputSchema: {
         marketId: z.string(),
         userId: z.string().describe("your agent or user identifier"),
@@ -68,8 +69,15 @@ function buildServer() {
     async ({ marketId, userId, outcome, shares }) => {
       const entry = getEntry(marketId);
       if (!entry) return textResult({ error: `unknown market id: ${marketId}` });
-      const result = entry.market.trade(userId, outcome, shares);
-      return textResult(result);
+      if (!entry.market.canTrade(userId)) {
+        return textResult({
+          ok: false,
+          reason: "insider — can influence this resolution; route to attestation, not trading",
+          note: "insider gate: blocked from trading, routed to attestation",
+        });
+      }
+      const { cost, after, tradeCount } = await placeTrade(entry.market.id, entry.market.amm.b, userId, outcome, shares);
+      return textResult({ ok: true, cost, prices: after, tradeCount });
     }
   );
 

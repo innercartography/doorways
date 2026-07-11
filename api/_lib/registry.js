@@ -7,21 +7,29 @@
 const { permitMarket, cpiMarket } = require("../../src/markets/examples");
 const { resolvePermitMarket } = require("../../src/oracles/datasf-permit");
 const { resolveCPIMarket } = require("../../src/oracles/bls-cpi");
+const { currentPrices } = require("./tradelog");
 
 const MARKETS = {
   [permitMarket.id]: { market: permitMarket, resolve: () => resolvePermitMarket(permitMarket.recipe.params) },
   [cpiMarket.id]: { market: cpiMarket, resolve: () => resolveCPIMarket(cpiMarket.recipe.params) },
 };
 
-function listMarkets() {
-  return Object.values(MARKETS).map(({ market }) => summarize(market));
+async function listMarkets() {
+  return Promise.all(Object.values(MARKETS).map(({ market }) => summarize(market)));
 }
 
-function summarize(market) {
+/**
+ * Prices come from the durable trade log (api/_lib/tradelog.js), not the
+ * market object's in-memory LMSR — that copy resets every cold start and
+ * isn't shared across concurrent function instances.
+ */
+async function summarize(market) {
+  const { prices, tradeCount } = await currentPrices(market.id, market.amm.b);
   return {
     id: market.id,
     question: market.question,
-    prices: market.prices(),
+    prices,
+    tradeCount,
     recipe: { label: market.recipe.label, trust: market.recipe.trust, note: market.recipe.note },
   };
 }

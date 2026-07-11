@@ -1,14 +1,15 @@
-const { getEntry, summarize } = require("../../_lib/registry");
+const { getEntry } = require("../../_lib/registry");
+const { placeTrade } = require("../../_lib/tradelog");
 
 /**
  * POST /api/markets/:id/trade  { userId, outcome, shares }
  *
- * Note for agent callers: this LMSR state lives in the function's memory,
- * not a database. On a serverless platform that means it can reset between
- * cold starts — treat trades here as demo interaction, not durable state.
- * The resolve endpoint reads real, live external data regardless of this.
+ * The insider gate (market.canTrade) is static config, checked in-memory.
+ * The trade itself is durable: placeTrade() replays the shared trade log
+ * from Vercel Blob before applying it, so the price this returns is the
+ * same one every other visitor's agent sees, not a per-instance copy.
  */
-module.exports = (req, res) => {
+module.exports = async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   if (req.method !== "POST") {
     res.status(405).json({ error: "POST only" });
@@ -24,10 +25,19 @@ module.exports = (req, res) => {
     res.status(400).json({ error: "body must be { userId: string, outcome: 'YES'|'NO', shares: number > 0 }" });
     return;
   }
-  const result = entry.market.trade(userId, outcome, shares);
-  if (!result.ok) {
-    res.status(403).json({ ...result, note: "insider gate: blocked from trading, routed to attestation" });
+  if (!entry.market.canTrade(userId)) {
+    res.status(403).json({
+      ok: false,
+      reason: "insider — can influence this resolution; route to attestation, not trading",
+      note: "insider gate: blocked from trading, routed to attestation",
+    });
     return;
   }
-  res.status(200).json({ ...result, market: summarize(entry.market) });
+  const { cost, after, tradeCount } = await placeTrade(entry.market.id, entry.market.amm.b, userId, outcome, shares);
+  res.status(200).json({
+    ok: true,
+    cost,
+    prices: after,
+    market: { id: entry.market.id, question: entry.market.question, prices: after, tradeCount },
+  });
 };
