@@ -359,8 +359,15 @@ function updSlider(){
 }
 s.addEventListener('input',()=>{userTouchedSlider=true;updSlider()});updSlider();
 
-const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.18});
-document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+// ?shot=1 — screenshot mode: skip the scroll-reveal fade entirely so a
+// single-frame headless capture (docs screenshots, slides) isn't racing
+// a CSS transition. Real visitors never see this state.
+if (new URLSearchParams(location.search).has('shot')) {
+  document.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
+} else {
+  const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.18});
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+}
 
 // ── Live price fetch (section 02) ───────────────────────────────────────
 async function loadLivePrice(){
