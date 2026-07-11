@@ -94,6 +94,16 @@ details .body code{font-family:'JetBrains Mono',monospace;font-size:.82rem;color
 .badges a:hover{color:var(--gold);border-color:var(--gold)}
 footer{text-align:center;padding:8vh 24px 12vh;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold-dim)}
 a{color:var(--gold)}
+.hero-qr{display:flex;align-items:center;gap:1.2rem;margin-top:2.2rem;flex-wrap:wrap}
+.qr-wrap{background:var(--cream);padding:10px;border-radius:8px;flex-shrink:0;line-height:0}
+.hero-qr-text p{margin-bottom:.6rem;font-size:.95rem}
+.hero-btn{font-family:'JetBrains Mono',monospace;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;background:var(--gold);color:var(--ink);display:inline-block;padding:.65rem 1.2rem;border-radius:4px;font-weight:600;text-decoration:none}
+.hero-btn:hover{background:#e8b654}
+.feed{margin-top:1.4rem;border:1px solid rgba(217,164,65,.25);border-radius:6px;overflow:hidden;max-height:180px;overflow-y:auto}
+.feed-row{padding:.55rem .9rem;border-bottom:1px solid rgba(217,164,65,.15);font-family:'JetBrains Mono',monospace;font-size:.76rem;color:var(--cream-dim);display:flex;justify-content:space-between;gap:1rem}
+.feed-row:last-child{border-bottom:none}
+.feed-row b{color:var(--cream)}
+.feed-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin:1.4rem 0 0}
 </style>
 </head>
 <body>
@@ -104,6 +114,13 @@ a{color:var(--gold)}
     <h1>Two<br>Doorways</h1>
     <div class="rule"></div>
     <p class="sub">A hyperlocal prediction market that resolves from the city's own data — and knows the difference between an expert and an insider.</p>
+    <div class="hero-qr">
+      <div id="heroQr" class="qr-wrap"></div>
+      <div class="hero-qr-text">
+        <p class="dim">Scan it, or <a href="/agent">tap here</a> — trade the market yourself in one call, no login.</p>
+        <a href="/agent" class="hero-btn">Try it now →</a>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -144,8 +161,10 @@ a{color:var(--gold)}
           <p>Same price, read differently: not a trade, just the number you check before your lease renews — a free, honest read on next March, before the Rent Board makes it official. <b id="hedgePay">no payout, just the odds</b>.</p>
         </div>
       </div>
+      <div class="feed-label">Live activity — real trades, moving this real price</div>
+      <div class="feed" id="feed"><div class="feed-row"><span>loading…</span></div></div>
     </div>
-    <p class="dim">Same price, two uses. The trader brings accuracy by trading it. The renter brings attention by checking it. Neither is gambling.</p>
+    <p class="dim">Same price, two uses. The trader brings accuracy by trading it. The renter brings attention by checking it. Neither is gambling. <a href="/agent">Add your own trade →</a></p>
   </div>
 </section>
 
@@ -308,15 +327,32 @@ https://two-doorways.vercel.app/api/mcp</div>
 
 <footer>Two Doorways · Frontier Forecast 2026 · innercartography.one</footer>
 
+<script src="/vendor/qrcode.min.js"></script>
+<script src="/vendor/qrcode-utf8.min.js"></script>
 <script>
+// QR code: vendored qrcode-generator (Kazuhiko Arase, MIT), no external
+// image service, no network call. Points at /agent, not this page itself —
+// the QR's job is to hand a scanner something to *do*, not just this URL.
+try {
+  const qr = qrcode(0, 'M');
+  qr.addData(new URL('/agent', location.href).href);
+  qr.make();
+  document.getElementById('heroQr').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2 });
+  const heroSvg = document.querySelector('#heroQr svg');
+  heroSvg.setAttribute('width', '128'); heroSvg.setAttribute('height', '128');
+} catch (e) {
+  document.getElementById('heroQr').outerHTML = '';
+}
+
 const s=document.getElementById('probSlider');
+let userTouchedSlider=false;
 function updSlider(){
   const p=+s.value;
   document.getElementById('yesCost').textContent='$'+(p/100).toFixed(2);
   document.getElementById('noCost').textContent='$'+((100-p)/100).toFixed(2);
   document.getElementById('hedgePay').textContent = p<50 ? 'right now, the crowd doubts a big jump' : 'right now, the crowd expects a bigger jump';
 }
-s.addEventListener('input',updSlider);updSlider();
+s.addEventListener('input',()=>{userTouchedSlider=true;updSlider()});updSlider();
 
 const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.18});
 document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
@@ -331,7 +367,7 @@ async function loadLivePrice(){
     const data = await res.json();
     const pct = Math.round(data.prices.YES*100);
     probVal.textContent = pct+'%';
-    s.min = 5; s.max = 95; s.value = pct; updSlider();
+    if (!userTouchedSlider) { s.min = 5; s.max = 95; s.value = pct; updSlider(); }
     badge.textContent = 'live'; badge.className = 'live-badge ok';
   } catch (e) {
     probVal.textContent = '50%';
@@ -340,6 +376,23 @@ async function loadLivePrice(){
   }
 }
 loadLivePrice();
+
+// ── Live activity feed (section 02) ─────────────────────────────────────
+async function loadFeed(){
+  const feed = document.getElementById('feed');
+  try {
+    const r = await fetch('/api/activity');
+    const d = await r.json();
+    if (!d.trades.length) { feed.innerHTML = '<div class="feed-row"><span>No trades yet — scan the QR above and be the first.</span></div>'; return; }
+    feed.innerHTML = d.trades.slice(0, 8).map(t => {
+      const time = new Date(t.at).toLocaleTimeString();
+      return '<div class="feed-row"><span><b>'+t.userId+'</b> bought '+t.shares+' '+t.outcome+'</span><span>'+time+'</span></div>';
+    }).join('');
+  } catch (e) { feed.innerHTML = '<div class="feed-row"><span>Feed unavailable right now.</span></div>'; }
+}
+loadFeed();
+setInterval(loadFeed, 6000);
+setInterval(loadLivePrice, 8000);
 
 // ── The wire: live resolve trace (section 07) ───────────────────────────
 const wireLog = document.getElementById('wireLog');
