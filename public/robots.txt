@@ -1,0 +1,28 @@
+# Two Doorways is built to be read by agents, not just crawled by them.
+# Everything here is public, play-money, and there's nothing to protect —
+# so this is permissive on purpose.
+
+User-agent: *
+Allow: /
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
+
+# Named allow rules for common AI agents/crawlers, explicit rather than implied.
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+Sitemap: https://two-doorways.vercel.app/sitemap.xml

@@ -1,0 +1,25 @@
+{
+  "outputDirectory": "public",
+  "headers": [
+    {
+      "source": "/",
+      "headers": [
+        { "key": "Link", "value": "</.well-known/mcp.json>; rel=\"mcp-server\", </llms.txt>; rel=\"llms-txt\"" }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Accept" }
+      ]
+    }
+  ],
+  "rewrites": [
+    { "source": "/one-pager", "destination": "/api/docs/one-pager" },
+    { "source": "/resolution-spec", "destination": "/api/docs/resolution-spec" },
+    { "source": "/demo-script", "destination": "/api/docs/demo-script" },
+    { "source": "/readme", "destination": "/api/docs/readme" }
+  ]
+}

@@ -74,20 +74,35 @@ A neighborhood is a tribe with concentrated knowledge. Give it an instrument and
 ```
 two-doorways/
 ├── README.md                  ← you are here (also the pitch)
+├── vercel.json                ← headers, rewrites, outputDirectory
+├── package.json
+├── public/                    ← deployed web root
+│   ├── index.html             ← the scrollytelling explainer — also a live tool + WebMCP surface
+│   ├── robots.txt              ← AI bot allow rules + Content Signals
+│   ├── sitemap.xml
+│   └── .well-known/mcp.json   ← MCP Server Card (SEP-1649 discovery)
+├── api/                       ← Vercel serverless functions — the agent-curlable surface
+│   ├── markets/index.js       ← GET list all markets
+│   ├── markets/[id]/index.js  ← GET one market's price + recipe
+│   ├── markets/[id]/resolve.js← GET live resolution
+│   ├── markets/[id]/trade.js  ← POST a trade (insider gate enforced)
+│   ├── mcp.js                 ← real MCP server (streamable-http, stateless)
+│   ├── docs/[name].js         ← markdown content negotiation for the docs below
+│   └── _lib/registry.js       ← shared market registry (REST + MCP both use this)
 ├── src/
 │   ├── markets/               ← market factory + market definitions
 │   │   ├── factory.js         ← create a market from (question, oracle recipe)
 │   │   └── examples.js        ← the two live SoMa markets (CPI + permit)
 │   ├── amm/
 │   │   └── lmsr.js            ← play-money pricing (cost fn, price, buy/sell)
-│   ├── oracles/
-│   │   ├── recipe.js         ← recipe interface + the 3 recipe types
-│   │   ├── datasf-permit.js  ← LIVE resolver — reads DataSF p4e4-a5a7
-│   │   └── bls-cpi.js        ← LIVE resolver — reads BLS CPI-U SF-Oakland-Hayward
-│   └── ui/
-│       └── index.html        ← the Two Doorways scrollytelling explainer
+│   └── oracles/
+│       ├── recipe.js         ← recipe interface + the 3 recipe types
+│       ├── datasf-permit.js  ← LIVE resolver — reads DataSF p4e4-a5a7
+│       └── bls-cpi.js        ← LIVE resolver — reads BLS CPI-U SF-Oakland-Hayward
 ├── scripts/
-│   └── refresh-cache.js       ← re-fetch live data into /data before stage
+│   ├── refresh-cache.js       ← re-fetch live data into /data before stage
+│   ├── dev-server.js          ← local stand-in for `vercel dev`, no login needed
+│   └── test-mcp.js            ← real MCP client test against api/mcp.js
 ├── data/                      ← cached API responses for offline demo safety
 └── docs/
     ├── ONE-PAGER.md          ← the required one-page summary
@@ -98,8 +113,13 @@ two-doorways/
 ## Run
 
 ```bash
-# Static UI — just open it
-open src/ui/index.html
+npm install
+
+# Local site + API, no Vercel login needed
+node scripts/dev-server.js        # → http://localhost:3000
+
+# Or with the real Vercel dev server (needs `vercel login` first)
+vercel dev
 
 # Test the live permit resolver against DataSF (no API key needed)
 node src/oracles/datasf-permit.js
@@ -107,9 +127,17 @@ node src/oracles/datasf-permit.js
 # Test the live CPI resolver against BLS (no API key needed)
 node src/oracles/bls-cpi.js
 
+# Test the real MCP server end-to-end with an actual MCP client
+node scripts/test-mcp.js
+
 # Refresh the /data offline-fallback cache (run during venue setup)
 node scripts/refresh-cache.js
 ```
+
+Deployed, the site is dual-legible: humans get the scrollytelling page, agents
+get `curl <site>/api/markets`, a real MCP server at `/api/mcp`, and markdown
+versions of every doc (`/one-pager`, `/readme`, etc. — send `Accept:
+text/markdown` or just curl them). See section 08 on the live page for the why.
 
 Both resolvers fail over to the cached snapshots in `/data` automatically if
 the live call errors, so a dead venue wifi doesn't kill the demo.

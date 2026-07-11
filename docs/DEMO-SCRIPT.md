@@ -20,8 +20,9 @@ permit — tries to trade it." Run the permit trade → blocked, routed to attes
 "Insiders attest. Outsiders trade. That's the conflict-of-interest problem, solved."
 
 ## 2:00–2:45 — Resolve it LIVE
-`node src/oracles/datasf-permit.js` → streams recent SoMa permits, then resolves
-our actual market: permit #202512101388, 915 Bryant St, live off DataSF.
+Scroll to section 07 ("The wire") on the deployed site and click **"Resolve
+permit #202512101388 live"** — the trace narrates the real request to DataSF
+on the projector. (Terminal fallback: `node src/oracles/datasf-permit.js`.)
 "This settles from the city's own ledger — one field, zero human judgment.
 No bookmaker. No dispute." (It'll read `resolved: false` — the building is
 still in triage, which is the honest answer and the whole point: the market
@@ -31,6 +32,17 @@ isn't rigged to pay off on demo day.)
 "A neighborhood is a tribe with concentrated knowledge. Give it an instrument and
 its wisdom becomes legible — to itself, and to capital on its own terms. Play money
 today, because the mechanism is the point."
+
+## If there's time, or a judge asks "what's technically novel here"
+Scroll to section 08. This site is dual-legible on purpose: `curl
+<site>/api/markets` returns the same live data a human sees, and there's a real
+MCP server at `/api/mcp` — not a REST endpoint dressed up as one, an actual
+SEP-1649-discoverable server (`/.well-known/mcp.json`), tested with a real MCP
+client. Built to the isitagentready.com checklist deliberately, including the
+one category we score zero on by design: no commerce protocols, because the
+markets are play money on purpose (regulatory picture unsettled) and bolting a
+payment rail onto an unlicensed instrument would be the wrong kind of
+"agent-ready." Section 08 has an explorable FAQ if a judge wants to poke at the why.
 
 ## Fallback
 Both resolvers (`datasf-permit.js`, `bls-cpi.js`) already fail over to

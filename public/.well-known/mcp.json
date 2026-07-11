@@ -1,0 +1,20 @@
+{
+  "protocolVersion": "2025-11-25",
+  "serverInfo": {
+    "name": "two-doorways",
+    "version": "1.0.0",
+    "description": "Hyperlocal SF prediction markets that resolve live from DataSF and BLS public data. Tools: list markets, get a market's live price and declared oracle recipe, resolve a market against its live source, trade (subject to the insider gate)."
+  },
+  "transport": {
+    "type": "streamable-http",
+    "endpoint": "https://two-doorways.vercel.app/api/mcp"
+  },
+  "capabilities": {
+    "tools": true,
+    "resources": false,
+    "prompts": false
+  },
+  "authentication": {
+    "required": false
+  }
+}

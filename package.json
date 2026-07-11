@@ -1,0 +1,13 @@
+{
+  "name": "two-doorways",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A hyperlocal prediction market that resolves from the city's own data — dual-legible for humans and agents.",
+  "scripts": {
+    "test": "node src/amm/lmsr.js && node src/oracles/datasf-permit.js && node src/oracles/bls-cpi.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.24.1"
+  }
+}

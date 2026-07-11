@@ -30,9 +30,13 @@ em{font-style:italic;color:var(--gold)}
 .rule{width:64px;height:1px;background:var(--gold);margin:2rem 0}
 .card{border:1px solid rgba(217,164,65,.35);background:linear-gradient(160deg,rgba(18,58,56,.65),rgba(11,31,30,.9));border-radius:6px;padding:1.6rem 1.4rem;margin:2rem 0;box-shadow:0 0 60px rgba(42,122,116,.12)}
 .card .q{font-weight:600;font-size:1.15rem;line-height:1.35;margin-bottom:1.2rem}
-.prob-row{display:flex;align-items:baseline;gap:.8rem;margin-bottom:.4rem}
+.prob-row{display:flex;align-items:baseline;gap:.8rem;margin-bottom:.4rem;flex-wrap:wrap}
 .prob{font-family:'JetBrains Mono',monospace;font-size:2.6rem;font-weight:600;color:var(--gold)}
 .prob-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--cream-dim)}
+.live-badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;padding:.25rem .5rem;border-radius:3px;border:1px solid rgba(217,164,65,.4)}
+.live-badge.ok{color:var(--teal-glow);border-color:rgba(42,122,116,.5)}
+.live-badge.wait{color:var(--cream-dim)}
+.live-badge.err{color:var(--no-red);border-color:rgba(180,90,74,.5)}
 input[type=range]{width:100%;appearance:none;height:2px;background:linear-gradient(90deg,var(--no-red),var(--teal-glow));outline:none;margin:1.2rem 0 .4rem}
 input[type=range]::-webkit-slider-thumb{appearance:none;width:22px;height:22px;border-radius:50%;background:var(--gold);border:2px solid var(--ink);cursor:pointer;box-shadow:0 0 12px rgba(217,164,65,.6)}
 input[type=range]:focus-visible::-webkit-slider-thumb{outline:2px solid var(--cream);outline-offset:2px}
@@ -64,9 +68,30 @@ input[type=range]:focus-visible::-webkit-slider-thumb{outline:2px solid var(--cr
 .half h4{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:.7rem}
 .half.fair h4{color:var(--teal-glow)}
 .half.foul h4{color:var(--no-red)}
+.half.good h4{color:var(--teal-glow)}
+.half.bad h4{color:var(--no-red)}
 .half p{font-size:.95rem;margin:0;color:var(--cream-dim)}
 .half p b{color:var(--cream)}
+.half code{display:block;font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--cream-dim);white-space:pre-wrap;line-height:1.6}
 @media(max-width:520px){.split{grid-template-columns:1fr}}
+.wire-btn{font-family:'JetBrains Mono',monospace;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;background:var(--gold);color:var(--ink);border:none;padding:.75rem 1.4rem;border-radius:4px;cursor:pointer;font-weight:600}
+.wire-btn:hover{background:#e8b654}
+.wire-btn:disabled{opacity:.5;cursor:wait}
+.wire-log{margin-top:1.4rem;border:1px solid rgba(217,164,65,.3);border-radius:6px;background:rgba(0,0,0,.35);font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:1.7;padding:1.1rem 1.2rem;min-height:2rem;white-space:pre-wrap;word-break:break-word;color:var(--cream-dim)}
+.wire-log .step{color:var(--teal-glow)}
+.wire-log .val{color:var(--gold)}
+.wire-log .lbl{color:var(--cream-dim);opacity:.7}
+details{border:1px solid rgba(217,164,65,.25);border-radius:6px;margin:0 0 .9rem;background:rgba(18,58,56,.25)}
+summary{cursor:pointer;padding:1rem 1.2rem;font-family:'JetBrains Mono',monospace;font-size:.92rem;color:var(--cream);list-style:none;display:flex;justify-content:space-between;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::after{content:'+';color:var(--gold);font-size:1.2rem}
+details[open] summary::after{content:'−'}
+details .body{padding:0 1.2rem 1.2rem;color:var(--cream-dim);font-size:.95rem}
+details .body code{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--gold)}
+.curl{background:rgba(0,0,0,.35);border-radius:4px;padding:.9rem 1rem;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--teal-glow);margin:.8rem 0;overflow-x:auto;white-space:pre}
+.badges{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.2rem}
+.badges a{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;border:1px solid rgba(217,164,65,.4);border-radius:3px;padding:.4rem .7rem;text-decoration:none;color:var(--cream-dim)}
+.badges a:hover{color:var(--gold);border-color:var(--gold)}
 footer{text-align:center;padding:8vh 24px 12vh;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold-dim)}
 a{color:var(--gold)}
 </style>
@@ -99,14 +124,15 @@ a{color:var(--gold)}
     <div class="card">
       <div class="q">Will the SF Rent Board allowable increase for 2027 exceed 2.0%?</div>
       <div class="prob-row">
-        <span class="prob" id="probVal">62%</span>
+        <span class="prob" id="probVal">—</span>
         <span class="prob-label">Market price · YES</span>
+        <span class="live-badge wait" id="liveBadge">connecting…</span>
       </div>
-      <input type="range" id="probSlider" min="5" max="95" value="62" aria-label="Market probability">
+      <input type="range" id="probSlider" min="5" max="95" value="50" aria-label="Explore a hypothetical market price">
       <div class="payline">
-        A YES share costs <b id="yesCost">$0.62</b> and pays <b>$1.00</b> if it exceeds 2.0%.<br>
-        A NO share costs <b id="noCost">$0.38</b> and pays <b>$1.00</b> if it doesn't.<br>
-        <span style="color:var(--gold)">The price is the probability. Drag it.</span>
+        A YES share costs <b id="yesCost">$0.50</b> and pays <b>$1.00</b> if it exceeds 2.0%.<br>
+        A NO share costs <b id="noCost">$0.50</b> and pays <b>$1.00</b> if it doesn't.<br>
+        <span style="color:var(--gold)">The price is the probability. Drag it to explore — the number above is the real, live one.</span>
       </div>
       <div class="doorways">
         <div class="door">
@@ -166,6 +192,21 @@ a{color:var(--gold)}
       </div>
     </div>
     <p class="dim">The tier <em>is</em> the honesty. Trustworthy-but-slow, or fast-but-proprietary — we price the tradeoff instead of hiding it.</p>
+    <div class="split">
+      <div class="half good">
+        <h4>Callable with confidence</h4>
+        <code>{ permitNumber: "202512101388",
+  targetStatus: "issued",
+  deadlineISO: "2026-09-01" }</code>
+        <p style="margin-top:.7rem">Unambiguous. Any agent — or judge — can check this by hand.</p>
+      </div>
+      <div class="half bad">
+        <h4>A coin flip</h4>
+        <code>{ note: "resolves when it
+  feels done" }</code>
+        <p style="margin-top:.7rem">This is the failure mode a declared recipe exists to rule out. We don't ship this tier.</p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -203,7 +244,55 @@ a{color:var(--gold)}
 
 <section>
   <div class="reveal">
-    <div class="eyebrow">07 · The horizon</div>
+    <div class="eyebrow">07 · The wire</div>
+    <h2>Watch the resolution actually happen.</h2>
+    <p>Not a screenshot. This calls the same live API this page runs on — a real request to San Francisco's own permit database, right now, in your browser.</p>
+    <button class="wire-btn" id="runWire">Resolve permit #202512101388 live</button>
+    <div class="wire-log" id="wireLog">Press the button. This narrates the full request → response, the same call an agent makes when it curls this site.</div>
+  </div>
+</section>
+
+<section>
+  <div class="reveal">
+    <div class="eyebrow">08 · For agents, specifically</div>
+    <h2>This page is also an API.</h2>
+    <p>Everything above is the same information a human gets by reading. An agent gets it by calling — no scraping, no guessing at DOM structure. That's the point of building this in <a href="https://developer.chrome.com/docs/ai/webmcp" target="_blank" rel="noopener">WebMCP</a>-native form from day one, not bolting it on later.</p>
+    <div class="curl">curl https://two-doorways.vercel.app/api/markets
+curl https://two-doorways.vercel.app/api/markets/permit-915-bryant-issued/resolve
+# or connect an MCP client to:
+https://two-doorways.vercel.app/api/mcp</div>
+    <p class="dim" id="webmcpStatus">Checking for native WebMCP support in this browser…</p>
+
+    <details>
+      <summary>Why no commerce protocols (x402, MPP, UCP, ACP)?</summary>
+      <div class="body">Deliberately, not by omission. Every market here is play money — accuracy is scored in reputation, not dollars, precisely because the real-money regulatory picture (Kalshi/CFTC) for event contracts is still unsettled. Wiring up an agentic-commerce payment rail on top of an instrument we're not licensed to settle in real money would be the wrong kind of "agent-ready." We'd rather score zero here honestly than fake a rail with nothing legal underneath it.</div>
+    </details>
+    <details>
+      <summary>Why does the permit market sometimes resolve to "not yet"?</summary>
+      <div class="body">Because that's the honest live answer. 915 Bryant St is still in <code>triage</code> as of this build — the resolver reads DataSF's real record, not a script written to make the demo land on a satisfying YES. If it resolves live in front of you and comes back <code>resolved: false</code>, that's the mechanism working, not failing.</div>
+    </details>
+    <details>
+      <summary>What happens if DataSF or BLS is unreachable?</summary>
+      <div class="body">Both resolvers fail over to a pre-fetched snapshot in <code>/data</code> and label the evidence accordingly (<code>source</code> will say "cached" instead of the live URL). Same resolution logic either way — tested by killing the network mid-call, not assumed.</div>
+    </details>
+    <details>
+      <summary>Is trading here durable?</summary>
+      <div class="body">No — LMSR state lives in the serverless function's memory, not a database, so it can reset between cold starts. That's fine for this demo: the part meant to be durable is the live resolution against DataSF/BLS, which reads real external state every time regardless of what the trading demo remembers.</div>
+    </details>
+
+    <div class="badges">
+      <a href="/robots.txt" target="_blank" rel="noopener">robots.txt</a>
+      <a href="/.well-known/mcp.json" target="_blank" rel="noopener">mcp.json</a>
+      <a href="/api/markets" target="_blank" rel="noopener">/api/markets</a>
+      <a href="/one-pager" target="_blank" rel="noopener">one-pager</a>
+      <a href="/readme?format=md" target="_blank" rel="noopener">readme.md</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="reveal">
+    <div class="eyebrow">09 · The horizon</div>
     <h2>Markets at the scale of a block.</h2>
     <p>A neighborhood is a tribe with concentrated knowledge. Give it an instrument and its wisdom becomes legible — to itself first, and to capital on the tribe's terms.</p>
     <p class="dim">Later: autonomous resolvers with onchain identity, staked reputation, and provenance for every settlement. Instruments, not oracles-by-decree.</p>
@@ -215,16 +304,92 @@ a{color:var(--gold)}
 
 <script>
 const s=document.getElementById('probSlider');
-function upd(){
+function updSlider(){
   const p=+s.value;
-  document.getElementById('probVal').textContent=p+'%';
   document.getElementById('yesCost').textContent='$'+(p/100).toFixed(2);
   document.getElementById('noCost').textContent='$'+((100-p)/100).toFixed(2);
   document.getElementById('hedgePay').textContent = p<50 ? 'right now, the crowd doubts a big jump' : 'right now, the crowd expects a bigger jump';
 }
-s.addEventListener('input',upd);upd();
+s.addEventListener('input',updSlider);updSlider();
+
 const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.18});
 document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+// ── Live price fetch (section 02) ───────────────────────────────────────
+async function loadLivePrice(){
+  const badge = document.getElementById('liveBadge');
+  const probVal = document.getElementById('probVal');
+  try {
+    const res = await fetch('/api/markets/sf-allowable-2027');
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    const pct = Math.round(data.prices.YES*100);
+    probVal.textContent = pct+'%';
+    s.min = 5; s.max = 95; s.value = pct; updSlider();
+    badge.textContent = 'live'; badge.className = 'live-badge ok';
+  } catch (e) {
+    probVal.textContent = '50%';
+    badge.textContent = 'demo (API not reachable from here)';
+    badge.className = 'live-badge err';
+  }
+}
+loadLivePrice();
+
+// ── The wire: live resolve trace (section 07) ───────────────────────────
+const wireLog = document.getElementById('wireLog');
+function wireLine(html){ wireLog.innerHTML += (wireLog.dataset.started ? '\n' : '') + html; wireLog.dataset.started = '1'; }
+
+document.getElementById('runWire').addEventListener('click', async (e) => {
+  const btn = e.currentTarget;
+  btn.disabled = true;
+  wireLog.innerHTML = ''; wireLog.dataset.started = '';
+  wireLine('<span class="lbl">→</span> <span class="step">GET</span> /api/markets/permit-915-bryant-issued/resolve');
+  wireLine("<span class=\"lbl\">   calling San Francisco's live permit database (DataSF p4e4-a5a7)…</span>");
+  try {
+    const t0 = performance.now();
+    const res = await fetch('/api/markets/permit-915-bryant-issued/resolve');
+    const data = await res.json();
+    const ms = Math.round(performance.now()-t0);
+    wireLine('<span class="lbl">←</span> <span class="step">'+res.status+'</span> in '+ms+'ms');
+    wireLine('');
+    wireLine('resolved: <span class="val">'+data.resolved+'</span>');
+    wireLine('outcome:  <span class="val">'+(data.outcome ?? 'null — not settled yet, honestly')+'</span>');
+    if (data.evidence) {
+      wireLine('');
+      wireLine('<span class="lbl">evidence, straight from the source:</span>');
+      Object.entries(data.evidence).forEach(([k,v]) => wireLine('  '+k+': <span class="val">'+v+'</span>'));
+    }
+  } catch (err) {
+    wireLine('<span class="lbl">✕ request failed:</span> '+err.message);
+    wireLine("<span class=\"lbl\">(expected if you're opening this file locally instead of the deployed site)</span>");
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ── WebMCP: register this page's tools with any agent browsing it ──────
+if ('modelContext' in navigator) {
+  document.getElementById('webmcpStatus').textContent = 'This browser supports WebMCP — tools below are registered live.';
+  navigator.modelContext.registerTool({
+    name: 'list_markets',
+    description: 'List all Two Doorways prediction markets with current price and declared oracle recipe.',
+    inputSchema: { type: 'object', properties: {} },
+    async execute(){
+      const r = await fetch('/api/markets'); return await r.json();
+    }
+  });
+  navigator.modelContext.registerTool({
+    name: 'resolve_market',
+    description: 'Resolve a Two Doorways market live against its declared source (DataSF or BLS).',
+    inputSchema: { type: 'object', properties: { marketId: { type: 'string' } }, required: ['marketId'] },
+    async execute({ marketId }){
+      const r = await fetch('/api/markets/'+encodeURIComponent(marketId)+'/resolve'); return await r.json();
+    }
+  });
+} else {
+  document.getElementById('webmcpStatus').textContent =
+    "This browser doesn't support navigator.modelContext yet (rolling out through 2026) — the tools are still registered in the page source, and the same functionality is live at /api/mcp for any MCP client today.";
+}
 </script>
 </body>
 </html>
