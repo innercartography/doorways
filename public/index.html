@@ -391,7 +391,10 @@ async function loadFeed(){
     if (!d.trades.length) { feed.innerHTML = '<div class="feed-row"><span>No trades yet — scan the QR above and be the first.</span></div>'; return; }
     feed.innerHTML = d.trades.slice(0, 8).map(t => {
       const time = new Date(t.at).toLocaleTimeString();
-      return '<div class="feed-row"><span><b>'+t.userId+'</b> bought '+t.shares+' '+t.outcome+'</span><span>'+time+'</span></div>';
+      const what = t.type === 'attestation'
+        ? '<b>'+t.userId+'</b> attested '+t.outcome+' ('+t.confidence+'%)'
+        : '<b>'+t.userId+'</b> bought '+t.shares+' '+t.outcome;
+      return '<div class="feed-row"><span>'+what+'</span><span>'+time+'</span></div>';
     }).join('');
   } catch (e) { feed.innerHTML = '<div class="feed-row"><span>Feed unavailable right now.</span></div>'; }
 }

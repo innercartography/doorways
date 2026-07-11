@@ -13,6 +13,7 @@ const { StreamableHTTPServerTransport } = require("@modelcontextprotocol/sdk/ser
 const { z } = require("zod");
 const { listMarkets, getEntry, summarize } = require("./_lib/registry");
 const { placeTrade } = require("./_lib/tradelog");
+const { appendAttestation } = require("./_lib/attestlog");
 
 function textResult(value) {
   return { content: [{ type: "text", text: JSON.stringify(value, null, 2) }] };
@@ -74,10 +75,36 @@ function buildServer() {
           ok: false,
           reason: "insider — can influence this resolution; route to attestation, not trading",
           note: "insider gate: blocked from trading, routed to attestation",
+          attest_instead: "use the attest tool instead",
         });
       }
       const { cost, after, tradeCount } = await placeTrade(entry.market.id, entry.market.amm.b, userId, outcome, shares);
       return textResult({ ok: true, cost, prices: after, tradeCount });
+    }
+  );
+
+  server.registerTool(
+    "attest",
+    {
+      description:
+        "Stake a claim with a confidence level instead of trading — for callers flagged as insiders on a market (can influence its resolution). Reputation, not money; a stub not yet wired into resolution or scoring, but a real recorded, durable claim, not a dead end.",
+      inputSchema: {
+        marketId: z.string(),
+        userId: z.string(),
+        outcome: z.enum(["YES", "NO"]),
+        confidence: z.number().min(0).max(100),
+        statement: z.string().optional(),
+      },
+    },
+    async ({ marketId, userId, outcome, confidence, statement }) => {
+      const entry = getEntry(marketId);
+      if (!entry) return textResult({ error: `unknown market id: ${marketId}` });
+      if (entry.market.canTrade(userId)) {
+        return textResult({ ok: false, reason: "not flagged as an insider on this market — trade it instead" });
+      }
+      const record = { marketId: entry.market.id, userId, outcome, confidence, statement: statement || null, at: Date.now() };
+      await appendAttestation(record);
+      return textResult({ ok: true, note: "attestation recorded — stub, not yet wired into resolution", attestation: record });
     }
   );
 

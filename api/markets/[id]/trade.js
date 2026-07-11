@@ -30,6 +30,7 @@ module.exports = async (req, res) => {
       ok: false,
       reason: "insider — can influence this resolution; route to attestation, not trading",
       note: "insider gate: blocked from trading, routed to attestation",
+      attest_instead: `POST /api/markets/${entry.market.id}/attest { userId, outcome, confidence, statement }`,
     });
     return;
   }

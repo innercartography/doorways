@@ -73,6 +73,8 @@ const server = http.createServer(async (req, res) => {
     if (m) { req.query.id = m[1]; return require(path.join(ROOT, "api", "markets", "[id]", "resolve.js"))(req, res); }
     m = pathname.match(/^\/api\/markets\/([^/]+)\/trade$/);
     if (m) { req.query.id = m[1]; return require(path.join(ROOT, "api", "markets", "[id]", "trade.js"))(req, res); }
+    m = pathname.match(/^\/api\/markets\/([^/]+)\/attest$/);
+    if (m) { req.query.id = m[1]; return require(path.join(ROOT, "api", "markets", "[id]", "attest.js"))(req, res); }
     m = pathname.match(/^\/api\/markets\/([^/]+)$/);
     if (m) { req.query.id = m[1]; return require(path.join(ROOT, "api", "markets", "[id]", "index.js"))(req, res); }
     if (pathname === "/api/mcp") {

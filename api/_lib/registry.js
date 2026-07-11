@@ -8,6 +8,7 @@ const { permitMarket, cpiMarket } = require("../../src/markets/examples");
 const { resolvePermitMarket } = require("../../src/oracles/datasf-permit");
 const { resolveCPIMarket } = require("../../src/oracles/bls-cpi");
 const { currentPrices } = require("./tradelog");
+const { listAttestations } = require("./attestlog");
 
 const MARKETS = {
   [permitMarket.id]: { market: permitMarket, resolve: () => resolvePermitMarket(permitMarket.recipe.params) },
@@ -24,12 +25,16 @@ async function listMarkets() {
  * isn't shared across concurrent function instances.
  */
 async function summarize(market) {
-  const { prices, tradeCount } = await currentPrices(market.id, market.amm.b);
+  const [{ prices, tradeCount }, attestations] = await Promise.all([
+    currentPrices(market.id, market.amm.b),
+    listAttestations(market.id),
+  ]);
   return {
     id: market.id,
     question: market.question,
     prices,
     tradeCount,
+    attestations: attestations.slice(0, 5),
     recipe: { label: market.recipe.label, trust: market.recipe.trust, note: market.recipe.note },
   };
 }

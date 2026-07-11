@@ -8,7 +8,7 @@
 
 const { LMSR } = require("../amm/lmsr");
 
-function createMarket({ id, question, recipe, b = 100, influencers = [] }) {
+function createMarket({ id, question, recipe, b = 400, influencers = [] }) {
   return {
     id,
     question,

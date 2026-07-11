@@ -1,10 +1,13 @@
 const { recentActivity, ensureSeeded } = require("./_lib/tradelog");
+const { recentAttestations } = require("./_lib/attestlog");
 const { MARKETS } = require("./_lib/registry");
 
 /**
- * GET /api/activity — recent trades across every market, most recent first.
- * Backs the live feed on the homepage: this is what turns "the price" from
- * a decorative number into something a room full of people visibly move.
+ * GET /api/activity — recent trades AND attestations across every market,
+ * merged into one feed, most recent first. Backs the live feed on the
+ * homepage and /agent: this is what turns "the price" from a decorative
+ * number into something a room full of people visibly move — and shows
+ * the other half of the insider gate actually happening, not just a 403.
  *
  * Also lazily seeds any never-traded market with one labeled "seed-bot"
  * trade (see ensureSeeded) — there's no cron on this plan, so priming
@@ -17,10 +20,11 @@ module.exports = async (req, res) => {
     return;
   }
   await Promise.all(Object.values(MARKETS).map(({ market }) => ensureSeeded(market.id, market.amm.b)));
-  const trades = await recentActivity(30);
-  const enriched = trades.map((t) => ({
-    ...t,
-    question: MARKETS[t.marketId] ? MARKETS[t.marketId].market.question : t.marketId,
-  }));
-  res.status(200).json({ trades: enriched });
+  const [trades, attestations] = await Promise.all([recentActivity(30), recentAttestations(30)]);
+  const questionFor = (marketId) => (MARKETS[marketId] ? MARKETS[marketId].market.question : marketId);
+  const merged = [
+    ...trades.map((t) => ({ type: "trade", ...t, question: questionFor(t.marketId) })),
+    ...attestations.map((a) => ({ type: "attestation", ...a, question: questionFor(a.marketId) })),
+  ].sort((a, b) => b.at - a.at).slice(0, 30);
+  res.status(200).json({ trades: merged });
 };
