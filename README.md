@@ -1,14 +1,26 @@
-# Two Doorways
+# 🏙️ Two Doorways
 
 **A hyperlocal prediction market that resolves from the city's own data — and knows the difference between an expert and an insider.**
 
+[![Live Site](https://img.shields.io/badge/live-two--doorways.vercel.app-2a7a74?style=for-the-badge)](https://two-doorways.vercel.app)
+[![Try it as an agent](https://img.shields.io/badge/agent--ready-%2Fagent-d9a441?style=for-the-badge)](https://two-doorways.vercel.app/agent)
+[![Built for](https://img.shields.io/badge/Frontier%20Forecast-2026-b45a4a?style=for-the-badge)](https://two-doorways.vercel.app)
+
 Built for Frontier Forecast 2026 · SoMa, San Francisco.
+
+<p align="center">
+  <img src="docs/screenshots/01-hero.png" alt="Two Doorways — hero, with QR code into the live agent demo" width="820">
+</p>
 
 ---
 
-## The one-liner
+## 💡 The one-liner
 
 One market question has two doorways. To a trader tracking regional CPI, it's a mispriced probability to correct. To a tenant, it's an early read on next year's rent — before the Rent Board makes it official. Same price, two motivations — accuracy from one side, foresight from the other. Neither is gambling.
+
+<p align="center">
+  <img src="docs/screenshots/02-market.png" alt="The live market card: one question, a real price, both doorways side by side" width="760">
+</p>
 
 ## Why this, why here
 
@@ -36,21 +48,31 @@ Every market ships with a declared resolution method, visible before you trade:
 
 The tier *is* the honesty. We price the trustworthy-but-slow vs. fast-but-proprietary tradeoff instead of hiding it.
 
-## The innovation: insiders attest, outsiders trade
+## 🛂 The innovation: insiders attest, outsiders trade
 
 Some knowledge is expertise; some is influence over the outcome. A market has to tell them apart.
 
 - **Fair (expertise):** knowing the CPI formula sets capped increases. Public rules, privately understood. Belongs in trading.
 - **Foul (influence):** knowing you're about to re-list a specific unit at market. Private action you control. Belongs in attestation, never trading.
 
-Participants who can move a resolution are flagged — barred from trading it, routed to attest instead. Being an insider becomes a **credential**, not a weapon. This is the conflict-of-interest problem a property operator feels from the inside, turned into a mechanism.
+Participants who can move a resolution are flagged — barred from trading it, routed to attest instead. Being an insider becomes a **credential**, not a weapon. This is the conflict-of-interest problem a property operator feels from the inside, turned into a mechanism. Not a slogan — `POST /trade` really returns a 403 for a flagged insider, and `POST /attest` really records their staked claim instead. Try it on [`/agent`](https://two-doorways.vercel.app/agent), one tap runs both.
 
-## What we ship today
+<p align="center">
+  <img src="docs/screenshots/03-insider.png" alt="Insiders attest, outsiders trade — the fair/foul split" width="760">
+</p>
+
+## 🔴 What we ship today
 
 - **Create** — a market factory: pose a neighborhood question, attach a declared oracle recipe.
 - **Trade** — a play-money automated market maker (LMSR) quotes a live, *shared* price — every trade is an immutable record in a durable log (Vercel Blob), replayed to compute the price, so any two callers (human or agent) always see the same market. No counterparty needed. Accuracy scored in reputation, not dollars → no regulatory exposure.
 - **Resolve** — the permit market settles live from DataSF, end to end, on stage.
-- **Try it yourself** — [`/agent`](https://two-doorways.vercel.app/agent), linked via a QR code on the homepage: one curl (or one tap, no terminal needed) places a real trade, another triggers the insider gate's real 403, and a live feed shows everyone's trades landing in the same market in real time.
+- **Try it yourself** — [`/agent`](https://two-doorways.vercel.app/agent), linked via a QR code on the homepage: one curl (or one tap, no terminal needed) places a real trade, another triggers the insider gate's real 403 → attestation, and a live feed shows everyone's activity landing in the same market in real time.
+
+<p align="center">
+  <img src="docs/screenshots/04-wire.png" alt="The wire: resolving the permit market live against DataSF, on stage" width="760">
+  <br><br>
+  <img src="docs/screenshots/05-agent.png" alt="The /agent page: QR-linked, one tap runs a real trade and the insider-gate block" width="420">
+</p>
 
 Two live SoMa markets. One resolution you can watch happen. **Play money on purpose** — the real-money regulatory picture (Kalshi/CFTC) is unsettled, and our contribution is the mechanism, not the wagering.
 
@@ -80,6 +102,8 @@ two-doorways/
 ├── public/                    ← deployed web root
 │   ├── index.html             ← the scrollytelling explainer — also a live tool + WebMCP surface
 │   ├── agent.html             ← /agent — QR-linked, one-tap starter trade + insider-gate demo
+│   ├── slides.html            ← /slides — the 5-slide presentation
+│   ├── screenshots/           ← same images as docs/screenshots, servable on the live site
 │   ├── vendor/qrcode*.js      ← vendored qrcode-generator (Kazuhiko Arase, MIT), no CDN
 │   ├── robots.txt              ← AI bot allow rules + Content Signals
 │   ├── sitemap.xml
@@ -156,10 +180,10 @@ the live call errors, so a dead venue wifi doesn't kill the demo.
 
 ## Deliverables checklist (per hackathon guide)
 
-- [ ] GitHub repository
-- [ ] 3-minute demo (see `docs/DEMO-SCRIPT.md`)
-- [ ] 5-slide presentation
-- [ ] One-page project summary (`docs/ONE-PAGER.md`)
+- [x] GitHub repository
+- [x] 3-minute demo (see `docs/DEMO-SCRIPT.md`)
+- [x] 5-slide presentation — [`/slides`](https://two-doorways.vercel.app/slides)
+- [x] One-page project summary (`docs/ONE-PAGER.md`)
 - [x] Live demo — permit market resolves from DataSF on stage
 
 ## Scoring map (how each piece earns points)

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Two Doorways — Slides</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,600;9..144,900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0b1f1e;--teal:#123a38;--teal-glow:#2a7a74;--cream:#f2ead8;--cream-dim:#c9c0ab;--gold:#d9a441;--gold-dim:#8a6a2e;--no-red:#b45a4a}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--ink);overflow:hidden}
+body{font-family:'Fraunces',serif;color:var(--cream)}
+.deck{height:100vh;width:100vw;position:relative}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6vh 8vw;opacity:0;pointer-events:none;transition:opacity .5s ease}
+.slide.active{opacity:1;pointer-events:auto}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:clamp(11px,1.4vw,14px);letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:1.6vh}
+h1{font-size:clamp(2.2rem,6.2vw,5rem);font-weight:900;font-variation-settings:'opsz' 144;line-height:1.05;letter-spacing:-.01em;max-width:16ch}
+p.sub{font-size:clamp(1rem,2vw,1.4rem);color:var(--cream-dim);margin-top:2vh;max-width:46ch}
+img.shot{max-width:min(70vw,760px);max-height:42vh;margin-top:3vh;border:1px solid rgba(217,164,65,.35);border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.split{display:flex;gap:3vw;align-items:center;justify-content:center;flex-wrap:wrap}
+.split img{max-width:min(38vw,420px);max-height:44vh;border:1px solid rgba(217,164,65,.35);border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.split .txt{text-align:left;max-width:32ch}
+.rule{width:80px;height:2px;background:var(--gold);margin:2vh auto}
+.nav{position:fixed;bottom:24px;left:0;right:0;display:flex;justify-content:center;gap:10px;z-index:10}
+.dot{width:9px;height:9px;border-radius:50%;background:rgba(217,164,65,.3);cursor:pointer;transition:background .2s}
+.dot.active{background:var(--gold)}
+.count{position:fixed;top:20px;right:24px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.15em;color:var(--gold-dim)}
+.arrow{position:fixed;top:50%;transform:translateY(-50%);font-family:'JetBrains Mono',monospace;font-size:22px;color:var(--gold-dim);cursor:pointer;padding:16px;user-select:none;z-index:10}
+.arrow:hover{color:var(--gold)}
+.arrow.left{left:8px}.arrow.right{right:8px}
+.fair{color:var(--teal-glow)}.foul{color:var(--no-red)}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <div class="slide active" data-i="0">
+    <div class="eyebrow">Frontier Forecast 2026 · SoMa, San Francisco</div>
+    <h1>Cities already know their own future.</h1>
+    <p class="sub">A property manager knows which storefronts go dark. A permit clerk knows what's coming before the crane arrives. That knowledge is real, distributed — and unpriced.</p>
+    <img class="shot" src="/screenshots/01-hero.png" alt="Two Doorways">
+  </div>
+
+  <div class="slide" data-i="1">
+    <div class="eyebrow">Doorway one · Renter</div>
+    <h1>Free. Before it's official.</h1>
+    <p class="sub">The crowd's live odds your rent jumps next year — a free, honest number to check before your lease renews, months before the Rent Board makes it real.</p>
+    <div class="rule"></div>
+    <p class="sub">No payout. No hedge. No insurance question. Just the number.</p>
+  </div>
+
+  <div class="slide" data-i="2">
+    <div class="eyebrow">Doorway two · Trader</div>
+    <h1>Same price. Two motivations.</h1>
+    <img class="shot" src="/screenshots/02-market.png" alt="The live market card">
+  </div>
+
+  <div class="slide" data-i="3">
+    <div class="eyebrow">The innovation</div>
+    <h1><span class="fair">Insiders attest.</span> <span class="foul">Outsiders trade.</span></h1>
+    <p class="sub">Knowledge is fair. Influence is foul. A market has to tell them apart — and enforce it, live.</p>
+    <img class="shot" src="/screenshots/03-insider.png" alt="Fair vs foul">
+  </div>
+
+  <div class="slide" data-i="4">
+    <div class="eyebrow">Live, right now</div>
+    <h1>Settled by the city. Not a bookmaker.</h1>
+    <div class="split">
+      <img src="/screenshots/04-wire.png" alt="Live resolution">
+      <div class="txt">
+        <p class="sub" style="margin-top:0">One field, zero human judgment — resolved against San Francisco's own permit database, on stage, right now.</p>
+        <p class="sub"><b style="color:var(--cream)">two-doorways.vercel.app</b> — scan, curl, or just watch.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="count" id="count">1 / 5</div>
+<div class="arrow left" id="prev">←</div>
+<div class="arrow right" id="next">→</div>
+<div class="nav" id="nav"></div>
+
+<script>
+const slides = [...document.querySelectorAll('.slide')];
+const nav = document.getElementById('nav');
+const count = document.getElementById('count');
+let i = 0;
+slides.forEach((_, idx) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (idx === 0 ? ' active' : '');
+  d.addEventListener('click', () => go(idx));
+  nav.appendChild(d);
+});
+const dots = [...nav.children];
+function go(n) {
+  i = (n + slides.length) % slides.length;
+  slides.forEach((s, idx) => s.classList.toggle('active', idx === i));
+  dots.forEach((d, idx) => d.classList.toggle('active', idx === i));
+  count.textContent = (i + 1) + ' / ' + slides.length;
+}
+document.getElementById('next').addEventListener('click', () => go(i + 1));
+document.getElementById('prev').addEventListener('click', () => go(i - 1));
+document.addEventListener('keydown', (e) => {
+  if (['ArrowRight', ' ', 'PageDown'].includes(e.key)) go(i + 1);
+  if (['ArrowLeft', 'PageUp'].includes(e.key)) go(i - 1);
+});
+</script>
+</body>
+</html>
