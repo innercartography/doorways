@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Two Doorways — A Hyperlocal Prediction Market</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,900&family=JetBrains+Mono:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0b1f1e;--teal:#123a38;--teal-glow:#2a7a74;
+  --cream:#f2ead8;--cream-dim:#c9c0ab;--gold:#d9a441;--gold-dim:#8a6a2e;--no-red:#b45a4a;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--cream);font-family:'Fraunces',serif;font-weight:300;line-height:1.65;overflow-x:hidden}
+::selection{background:var(--gold);color:var(--ink)}
+section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:12vh 24px;max-width:740px;margin:0 auto;position:relative}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:1.6rem}
+h1{font-size:clamp(2.6rem,8vw,4.6rem);font-weight:900;font-variation-settings:'opsz' 144;line-height:1.04;letter-spacing:-.01em}
+h2{font-size:clamp(1.8rem,5.5vw,2.8rem);font-weight:600;line-height:1.12;margin-bottom:1.4rem}
+p{font-size:clamp(1.05rem,2.6vw,1.2rem);margin-bottom:1.2rem;color:var(--cream)}
+p.dim{color:var(--cream-dim)}
+em{font-style:italic;color:var(--gold)}
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .9s ease,transform .9s ease}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+#hero{text-align:left}
+#hero .sub{margin-top:1.8rem;font-size:clamp(1.1rem,3vw,1.35rem);color:var(--cream-dim)}
+.rule{width:64px;height:1px;background:var(--gold);margin:2rem 0}
+.card{border:1px solid rgba(217,164,65,.35);background:linear-gradient(160deg,rgba(18,58,56,.65),rgba(11,31,30,.9));border-radius:6px;padding:1.6rem 1.4rem;margin:2rem 0;box-shadow:0 0 60px rgba(42,122,116,.12)}
+.card .q{font-weight:600;font-size:1.15rem;line-height:1.35;margin-bottom:1.2rem}
+.prob-row{display:flex;align-items:baseline;gap:.8rem;margin-bottom:.4rem}
+.prob{font-family:'JetBrains Mono',monospace;font-size:2.6rem;font-weight:600;color:var(--gold)}
+.prob-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--cream-dim)}
+input[type=range]{width:100%;appearance:none;height:2px;background:linear-gradient(90deg,var(--no-red),var(--teal-glow));outline:none;margin:1.2rem 0 .4rem}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:22px;height:22px;border-radius:50%;background:var(--gold);border:2px solid var(--ink);cursor:pointer;box-shadow:0 0 12px rgba(217,164,65,.6)}
+input[type=range]:focus-visible::-webkit-slider-thumb{outline:2px solid var(--cream);outline-offset:2px}
+.payline{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--cream-dim);line-height:1.8}
+.payline b{color:var(--cream);font-weight:600}
+.doorways{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(217,164,65,.25);margin-top:1.4rem;border:1px solid rgba(217,164,65,.25);border-radius:4px;overflow:hidden}
+.door{background:var(--ink);padding:1rem .9rem}
+.door h4{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:.6rem}
+.door p{font-size:.9rem;margin:0;color:var(--cream-dim)}
+.door p b{color:var(--cream)}
+@media(max-width:520px){.doorways{grid-template-columns:1fr}}
+.tiers{margin:2rem 0;border:1px solid rgba(217,164,65,.25);border-radius:6px;overflow:hidden}
+.tier{padding:1.1rem 1.2rem;border-bottom:1px solid rgba(217,164,65,.18)}
+.tier:last-child{border-bottom:none}
+.tier .name{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:.35rem}
+.tier .name .tag{color:var(--cream-dim);letter-spacing:.1em}
+.tier p{font-size:.98rem;margin:0;color:var(--cream-dim)}
+.tier p b{color:var(--cream);font-weight:600}
+.tier.live{background:linear-gradient(160deg,rgba(42,122,116,.22),rgba(11,31,30,.4))}
+.tier.live .name{color:var(--teal-glow)}
+.pipe{border-left:1px solid var(--gold-dim);padding-left:1.4rem;margin:2rem 0}
+.pipe .step{margin-bottom:1.6rem;position:relative}
+.pipe .step::before{content:'';position:absolute;left:calc(-1.4rem - 4.5px);top:.5em;width:8px;height:8px;border-radius:50%;background:var(--gold)}
+.pipe .k{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:.3rem}
+.pipe p{font-size:1rem;margin:0;color:var(--cream-dim)}
+.pipe p b{color:var(--cream);font-weight:600}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(217,164,65,.25);margin:2rem 0;border:1px solid rgba(217,164,65,.25);border-radius:6px;overflow:hidden}
+.half{background:var(--ink);padding:1.3rem 1.2rem}
+.half h4{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:.7rem}
+.half.fair h4{color:var(--teal-glow)}
+.half.foul h4{color:var(--no-red)}
+.half p{font-size:.95rem;margin:0;color:var(--cream-dim)}
+.half p b{color:var(--cream)}
+@media(max-width:520px){.split{grid-template-columns:1fr}}
+footer{text-align:center;padding:8vh 24px 12vh;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold-dim)}
+a{color:var(--gold)}
+</style>
+</head>
+<body>
+
+<section id="hero">
+  <div class="reveal">
+    <div class="eyebrow">Frontier Forecast 2026 · SoMa, San Francisco</div>
+    <h1>Two<br>Doorways</h1>
+    <div class="rule"></div>
+    <p class="sub">A hyperlocal prediction market that resolves from the city's own data — and knows the difference between an expert and an insider.</p>
+  </div>
+</section>
+
+<section>
+  <div class="reveal">
+    <div class="eyebrow">01 · The claim</div>
+    <h2>Cities already know their own future.</h2>
+    <p>A property manager knows which retail spaces will go dark. The barista knows the block is turning over. The permit clerk knows what's coming before the crane arrives.</p>
+    <p class="dim">This knowledge is real, distributed, and unpriced. There is no instrument for it — only rumor.</p>
+  </div>
+</section>
+
+<section>
+  <div class="reveal">
+    <div class="eyebrow">02 · The instrument</div>
+    <h2>A market is a question with a price attached.</h2>
+    <p>Take one verifiable question about one neighborhood:</p>
+    <div class="card">
+      <div class="q">Will the SF Rent Board allowable increase for 2027 exceed 2.0%?</div>
+      <div class="prob-row">
+        <span class="prob" id="probVal">62%</span>
+        <span class="prob-label">Market price · YES</span>
+      </div>
+      <input type="range" id="probSlider" min="5" max="95" value="62" aria-label="Market probability">
+      <div class="payline">
+        A YES share costs <b id="yesCost">$0.62</b> and pays <b>$1.00</b> if it exceeds 2.0%.<br>
+        A NO share costs <b id="noCost">$0.38</b> and pays <b>$1.00</b> if it doesn't.<br>
+        <span style="color:var(--gold)">The price is the probability. Drag it.</span>
+      </div>
+      <div class="doorways">
+        <div class="door">
+          <h4>Doorway one · Trader</h4>
+          <p>You track regional CPI and think the market's wrong. Buy the mispriced side, profit when the number posts. <b>Your analysis becomes the signal.</b></p>
+        </div>
+        <div class="door">
+          <h4>Doorway two · Tenant</h4>
+          <p>A high allowable increase raises what you'll owe next March. Buy YES on your own bad news — <b id="hedgePay">the payout offsets the hike</b>.</p>
+        </div>
+      </div>
+    </div>
+    <p class="dim">Same shares, two motivations. The trader brings accuracy. The tenant brings purpose. Neither is gambling.</p>
+  </div>
+</section>
+
+<section>
+  <div class="reveal">
+    <div class="eyebrow">03 · The domain edge</div>
+    <h2>Not all rent is uncertain.</h2>
+    <p>San Francisco has three regulatory tiers. Knowing which is which is the difference between a live market and a dead one:</p>
+    <div class="tiers">
+      <div class="tier">
+        <div class="name">Rent Ordinance <span class="tag">/ pre-1979</span></div>
+        <p>Increase is a <b>published CPI formula</b>. In a hot market landlords always max it. <b>No disagreement — no market.</b></p>
+      </div>
+      <div class="tier">
+        <div class="name">AB 1482 <span class="tag">/ state cap</span></div>
+        <p>Capped at 5% + CPI. Also below market, also maxed. <b>Deterministic — no market.</b></p>
+      </div>
+      <div class="tier">
+        <div class="name">New builds <span class="tag">/ uncapped</span></div>
+        <p>The <b>only</b> tier where the increase is a real decision. Here — and only here — asking-rent markets have genuine uncertainty.</p>
+      </div>
+    </div>
+    <p class="dim">So the uncertainty doesn't live in "will rent rise." It lives upstream, in the <em>CPI input</em> that sets every capped increase — and downstream, in the <em>uncapped</em> tier. We build markets on those two, not the dead middle.</p>
+  </div>
+</section>
+
+<section>
+  <div class="reveal">
+    <div class="eyebrow">04 · The oracle recipe</div>
+    <h2>Every market declares how it settles.</h2>
+    <p>Trust isn't assumed — it's specified, like an ingredient list. Three data tiers, three honesty levels, each named before you trade:</p>
+    <div class="tiers">
+      <div class="tier live">
+        <div class="name">API-resolved <span class="tag">· live on stage</span></div>
+        <p>Permits settle from <b>DataSF p4e4-a5a7</b>; CPI markets from <b>the BLS release</b>. One field, zero judgment. This is the market we resolve in front of you.</p>
+      </div>
+      <div class="tier">
+        <div class="name">Public-data-computed</div>
+        <p>Rent buckets from the <b>Rent Board inventory (gdc7-dmcn)</b> — authoritative, penalty-of-perjury, but annual and coarse. Method published up front.</p>
+      </div>
+      <div class="tier">
+        <div class="name">Attestation</div>
+        <p>Storefront closures via <b>staked local observers</b>. Subjective, small-scale — the frontier problem, named honestly, not faked.</p>
+      </div>
+    </div>
+    <p class="dim">The tier <em>is</em> the honesty. Trustworthy-but-slow, or fast-but-proprietary — we price the tradeoff instead of hiding it.</p>
+  </div>
+</section>
+
+<section>
+  <div class="reveal">
+    <div class="eyebrow">05 · The innovation</div>
+    <h2>Insiders attest. Outsiders trade.</h2>
+    <p>Some knowledge is expertise. Some is influence over the outcome. A market has to tell them apart — and a property operator feels the line from the inside:</p>
+    <div class="split">
+      <div class="half fair">
+        <h4>Fair — expertise</h4>
+        <p>Knowing the CPI formula sets capped increases. <b>Public rules, privately understood.</b> This edge belongs in trading.</p>
+      </div>
+      <div class="half foul">
+        <h4>Foul — influence</h4>
+        <p>Knowing you're about to re-list a specific unit at market. <b>Private action you control.</b> This belongs in attestation, never trading.</p>
+      </div>
+    </div>
+    <p class="dim">Participants who can move a resolution are flagged: barred from trading it, routed instead to attest. Being an insider becomes a <em>credential</em>, not a weapon.</p>
+  </div>
+</section>
+
+<section>
+  <div class="reveal">
+    <div class="eyebrow">06 · The build</div>
+    <h2>What we ship today.</h2>
+    <div class="pipe">
+      <div class="step"><span class="k">Create</span><p>A <b>market factory</b>: pose a neighborhood question, attach a declared oracle recipe.</p></div>
+      <div class="step"><span class="k">Trade</span><p>A play-money <b>automated market maker</b> quotes a live price — no counterparty needed. Accuracy scored in reputation, not dollars, so no regulatory exposure.</p></div>
+      <div class="step"><span class="k">Resolve</span><p>The permit market <b>settles live from DataSF</b>, end to end, on stage.</p></div>
+    </div>
+    <p class="dim">Two live SoMa markets. One resolution you can watch happen. Play money on purpose — the real-money picture is unsettled, and the contribution is the mechanism.</p>
+  </div>
+</section>
+
+<section>
+  <div class="reveal">
+    <div class="eyebrow">07 · The horizon</div>
+    <h2>Markets at the scale of a block.</h2>
+    <p>A neighborhood is a tribe with concentrated knowledge. Give it an instrument and its wisdom becomes legible — to itself first, and to capital on the tribe's terms.</p>
+    <p class="dim">Later: autonomous resolvers with onchain identity, staked reputation, and provenance for every settlement. Instruments, not oracles-by-decree.</p>
+    <p class="dim" style="margin-top:2rem"><em>Places hold knowledge. This makes it tradable without making it extractable.</em></p>
+  </div>
+</section>
+
+<footer>Two Doorways · Frontier Forecast 2026 · innercartography.one</footer>
+
+<script>
+const s=document.getElementById('probSlider');
+function upd(){
+  const p=+s.value;
+  document.getElementById('probVal').textContent=p+'%';
+  document.getElementById('yesCost').textContent='$'+(p/100).toFixed(2);
+  document.getElementById('noCost').textContent='$'+((100-p)/100).toFixed(2);
+  document.getElementById('hedgePay').textContent = p<50 ? 'cheap cover while the market doubts it' : 'the payout offsets the hike';
+}
+s.addEventListener('input',upd);upd();
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.18});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
