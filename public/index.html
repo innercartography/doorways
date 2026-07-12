@@ -481,8 +481,12 @@ if ('modelContext' in navigator) {
 </script>
 <script>
 // Swarm of arrows drifting over the page; the cursor acts as a soft
-// gravity well. Fixed to the viewport so it reads as one continuous
-// field behind the scrolling content, not a per-section effect.
+// gravity well that also spins them into orbit. Hold the cursor still
+// with enough arrows caught in orbit and it charges up like a capacitor —
+// crackling arcs between them — then releases as a supernova burst that
+// scatters the cluster before everything settles back to wandering.
+// Fixed to the viewport so it reads as one continuous field behind the
+// scrolling content, not a per-section effect.
 (function(){
   const canvas = document.getElementById('arrowField');
   if (!canvas) return;
@@ -510,70 +514,231 @@ if ('modelContext' in navigator) {
   }, { passive: true });
 
   const COLORS = ['#d9a441', '#2a7a74', '#f2ead8'];
+  const SPARK_COLORS = ['#ffffff', '#d9a441', '#9fe6dd'];
   const N = Math.max(18, Math.min(40, Math.floor((W * H) / 34000)));
   const arrows = Array.from({ length: N }, () => ({
     x: Math.random() * W, y: Math.random() * H,
     vx: (Math.random() - 0.5) * 0.6, vy: (Math.random() - 0.5) * 0.6,
     wander: Math.random() * Math.PI * 2,
     size: 6 + Math.random() * 7,
-    color: COLORS[Math.floor(Math.random() * COLORS.length)]
+    color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    boost: 0
   }));
 
   const MAX_SPEED = 2.6;
   const ATTRACT_RADIUS = 260;
   const ATTRACT_FORCE = 0.14;
+  const CLUSTER_RADIUS = 90;
+  const CLUSTER_MIN = Math.max(4, Math.round(N * 0.22));
+  const CHARGE_RATE = 0.013;
+  const DISCHARGE_RATE = 0.05;
+
+  let charge = 0;
+  let cooldown = 0;
+  let sparks = [];
+  let flashFrames = 0;
+  let flashX = 0, flashY = 0;
+
+  function jaggedPath(x1, y1, x2, y2, displace){
+    let pts = [{ x: x1, y: y1 }, { x: x2, y: y2 }];
+    for (let s = 0; s < 2; s++) {
+      const next = [pts[0]];
+      for (let i = 0; i < pts.length - 1; i++) {
+        const a = pts[i], b = pts[i + 1];
+        next.push({ x: (a.x + b.x) / 2 + (Math.random() - 0.5) * displace, y: (a.y + b.y) / 2 + (Math.random() - 0.5) * displace }, b);
+      }
+      pts = next;
+      displace *= 0.55;
+    }
+    return pts;
+  }
+
+  function strokeBolt(pts, color, alpha, width){
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 10;
+    ctx.stroke();
+  }
+
+  function triggerSupernova(cx, cy, cluster){
+    for (const a of cluster) {
+      const dx = a.x - cx, dy = a.y - cy;
+      const dist = Math.hypot(dx, dy) || 1;
+      const ang = dist > 1 ? Math.atan2(dy, dx) : Math.random() * Math.PI * 2;
+      const speed = 4.5 + Math.random() * 5;
+      a.vx = Math.cos(ang) * speed;
+      a.vy = Math.sin(ang) * speed;
+      a.boost = 42;
+    }
+    const sparkCount = 46;
+    for (let i = 0; i < sparkCount; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const speed = 2 + Math.random() * 7;
+      sparks.push({
+        x: cx, y: cy,
+        vx: Math.cos(ang) * speed, vy: Math.sin(ang) * speed,
+        life: 26 + Math.random() * 26, maxLife: 52,
+        color: SPARK_COLORS[Math.floor(Math.random() * SPARK_COLORS.length)]
+      });
+    }
+    flashFrames = 28;
+    flashX = cx; flashY = cy;
+    charge = 0;
+    cooldown = 100;
+  }
 
   function step(){
     ctx.clearRect(0, 0, W, H);
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
 
-    if (mouse.active) {
-      const g = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, ATTRACT_RADIUS);
-      g.addColorStop(0, 'rgba(217,164,65,0.10)');
-      g.addColorStop(1, 'rgba(217,164,65,0)');
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, W, H);
-    }
+    if (cooldown > 0) cooldown--;
 
+    // physics pass
     for (const a of arrows) {
-      a.wander += (Math.random() - 0.5) * 0.5;
-      a.vx += Math.cos(a.wander) * 0.02;
-      a.vy += Math.sin(a.wander) * 0.02;
+      if (a.boost > 0) {
+        a.boost--;
+        a.vx *= 0.965; a.vy *= 0.965;
+      } else {
+        a.wander += (Math.random() - 0.5) * 0.5;
+        a.vx += Math.cos(a.wander) * 0.02;
+        a.vy += Math.sin(a.wander) * 0.02;
 
-      if (mouse.active) {
-        const dx = mouse.x - a.x, dy = mouse.y - a.y;
-        const dist = Math.hypot(dx, dy) || 1;
-        if (dist < ATTRACT_RADIUS) {
-          const pull = ATTRACT_FORCE * (1 - dist / ATTRACT_RADIUS);
-          a.vx += (dx / dist) * pull;
-          a.vy += (dy / dist) * pull;
+        if (mouse.active) {
+          const dx = mouse.x - a.x, dy = mouse.y - a.y;
+          const dist = Math.hypot(dx, dy) || 1;
+          if (dist < ATTRACT_RADIUS) {
+            const near = 1 - dist / ATTRACT_RADIUS;
+            const pull = ATTRACT_FORCE * near;
+            a.vx += (dx / dist) * pull;
+            a.vy += (dy / dist) * pull;
+            const orbit = (0.03 + charge * 0.09) * near;
+            a.vx += (-dy / dist) * orbit;
+            a.vy += (dx / dist) * orbit;
+          }
         }
-      }
 
-      const sp = Math.hypot(a.vx, a.vy);
-      if (sp > MAX_SPEED) { a.vx = a.vx / sp * MAX_SPEED; a.vy = a.vy / sp * MAX_SPEED; }
-      a.vx *= 0.99; a.vy *= 0.99;
+        const sp = Math.hypot(a.vx, a.vy);
+        if (sp > MAX_SPEED) { a.vx = a.vx / sp * MAX_SPEED; a.vy = a.vy / sp * MAX_SPEED; }
+        a.vx *= 0.99; a.vy *= 0.99;
+      }
 
       a.x += a.vx; a.y += a.vy;
       if (a.x < -20) a.x = W + 20; if (a.x > W + 20) a.x = -20;
       if (a.y < -20) a.y = H + 20; if (a.y > H + 20) a.y = -20;
+    }
 
+    // cluster + charge state
+    let cluster = [];
+    if (mouse.active && cooldown === 0) {
+      for (const a of arrows) {
+        if (a.boost === 0 && Math.hypot(mouse.x - a.x, mouse.y - a.y) < CLUSTER_RADIUS) cluster.push(a);
+      }
+    }
+    if (cooldown === 0 && mouse.active && cluster.length >= CLUSTER_MIN) {
+      charge = Math.min(1, charge + CHARGE_RATE);
+    } else if (cooldown === 0) {
+      charge = Math.max(0, charge - DISCHARGE_RATE);
+    }
+    if (charge >= 1) triggerSupernova(mouse.x, mouse.y, cluster);
+
+    // mouse glow, brightening and flickering as it charges
+    if (mouse.active) {
+      const flicker = charge > 0.1 ? 0.85 + Math.random() * 0.3 : 1;
+      const glowAlpha = (0.10 + charge * 0.22) * flicker;
+      const glowColor = charge > 0.6 ? '242,236,220' : '217,164,65';
+      const g = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, ATTRACT_RADIUS * (1 + charge * 0.15));
+      g.addColorStop(0, `rgba(${glowColor},${glowAlpha})`);
+      g.addColorStop(1, `rgba(${glowColor},0)`);
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // crackling arcs through the charging cluster
+    if (charge > 0.12 && cluster.length) {
+      const boltAlpha = Math.min(1, charge * 1.1);
+      for (const a of cluster) {
+        const pts = jaggedPath(mouse.x, mouse.y, a.x, a.y, 16);
+        const boltColor = Math.random() < 0.5 ? '#f2ead8' : '#d9a441';
+        strokeBolt(pts, boltColor, boltAlpha * (0.5 + Math.random() * 0.5), 1 + charge);
+      }
+      const webLinks = Math.min(4, Math.floor(cluster.length / 2));
+      for (let i = 0; i < webLinks; i++) {
+        const a = cluster[Math.floor(Math.random() * cluster.length)];
+        const b = cluster[Math.floor(Math.random() * cluster.length)];
+        if (a === b) continue;
+        const pts = jaggedPath(a.x, a.y, b.x, b.y, 10);
+        strokeBolt(pts, '#9fe6dd', boltAlpha * 0.4, 1);
+      }
+      ctx.shadowBlur = 0;
+    }
+
+    // arrows
+    for (const a of arrows) {
       const angle = Math.atan2(a.vy, a.vx);
+      const charging = charge > 0.12 && cluster.includes(a);
       ctx.save();
       ctx.translate(a.x, a.y);
       ctx.rotate(angle);
+      const sz = charging ? a.size * (1 + charge * 0.35) : a.size;
       ctx.beginPath();
-      ctx.moveTo(a.size, 0);
-      ctx.lineTo(-a.size * 0.6, a.size * 0.5);
-      ctx.lineTo(-a.size * 0.3, 0);
-      ctx.lineTo(-a.size * 0.6, -a.size * 0.5);
+      ctx.moveTo(sz, 0);
+      ctx.lineTo(-sz * 0.6, sz * 0.5);
+      ctx.lineTo(-sz * 0.3, 0);
+      ctx.lineTo(-sz * 0.6, -sz * 0.5);
       ctx.closePath();
-      ctx.globalAlpha = 0.55;
-      ctx.shadowColor = a.color;
-      ctx.shadowBlur = 6;
-      ctx.fillStyle = a.color;
+      ctx.globalAlpha = charging ? Math.min(1, 0.55 + charge * 0.45) : 0.55;
+      ctx.shadowColor = charging ? '#f2ead8' : a.color;
+      ctx.shadowBlur = charging ? 6 + charge * 10 : 6;
+      ctx.fillStyle = charging ? '#f2ead8' : a.color;
       ctx.fill();
       ctx.restore();
     }
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+
+    // supernova sparks
+    if (sparks.length) {
+      ctx.globalCompositeOperation = 'lighter';
+      sparks = sparks.filter(s => s.life > 0);
+      for (const s of sparks) {
+        s.x += s.vx; s.y += s.vy;
+        s.vx *= 0.94; s.vy *= 0.94;
+        s.life--;
+        const a = Math.max(0, s.life / s.maxLife);
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, 1.6 * a + 0.6, 0, Math.PI * 2);
+        ctx.globalAlpha = a;
+        ctx.fillStyle = s.color;
+        ctx.shadowColor = s.color;
+        ctx.shadowBlur = 8;
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    // supernova flash
+    if (flashFrames > 0) {
+      const t = flashFrames / 28;
+      const r = (1 - t) * 320 + 20;
+      ctx.globalCompositeOperation = 'lighter';
+      const g = ctx.createRadialGradient(flashX, flashY, 0, flashX, flashY, r);
+      g.addColorStop(0, `rgba(255,255,255,${0.55 * t})`);
+      g.addColorStop(0.4, `rgba(242,236,220,${0.35 * t})`);
+      g.addColorStop(1, 'rgba(217,164,65,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'source-over';
+      flashFrames--;
+    }
+
     requestAnimationFrame(step);
   }
   requestAnimationFrame(step);
