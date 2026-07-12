@@ -1,6 +1,6 @@
 # 🏙️ Two Doorways
 
-**A hyperlocal prediction market that resolves from the city's own data — and knows the difference between an expert and an insider.**
+**Civic forecasting infrastructure for neighborhoods. Prediction markets are the mechanism — not the point.** Resolves from the city's own data, and knows the difference between an expert and an insider.
 
 [![Live Site](https://img.shields.io/badge/live-two--doorways.vercel.app-2a7a74?style=for-the-badge)](https://two-doorways.vercel.app)
 [![Try it as an agent](https://img.shields.io/badge/agent--ready-%2Fagent-d9a441?style=for-the-badge)](https://two-doorways.vercel.app/agent)
@@ -24,7 +24,7 @@ One market question has two doorways. To a trader tracking regional CPI, it's a 
 
 ## Why this, why here
 
-Cities already know their own future — that knowledge is real, distributed, and unpriced. There's no instrument for it, only rumor. Two Doorways turns block-scale knowledge into a price, and settles it from public infrastructure instead of a bookmaker's say-so.
+Cities make million-dollar decisions on surveys that take months and dashboards that are stale the day they ship. Cities already know their own future — that knowledge is real, distributed, and unpriced. There's no instrument for it, only rumor. Two Doorways continuously fuses public data, local expertise, and accountable forecasting into a living signal — and settles it from public infrastructure instead of a bookmaker's say-so. AI agents participate too, through the same MCP surface humans use, bound by the exact same governance — no separate, looser rules for machines.
 
 ## The domain edge (the part nobody else in the room has)
 
@@ -50,7 +50,7 @@ The tier *is* the honesty. We price the trustworthy-but-slow vs. fast-but-propri
 
 ## 🛂 The innovation: insiders attest, outsiders trade
 
-Some knowledge is expertise; some is influence over the outcome. A market has to tell them apart.
+Most prediction markets struggle because they assume every informed participant should trade. We separate incentives instead: experts trade, insiders attest, everyone else just reads the number. Some knowledge is expertise; some is influence over the outcome. A market has to tell them apart.
 
 - **Fair (expertise):** knowing the CPI formula sets capped increases. Public rules, privately understood. Belongs in trading.
 - **Foul (influence):** knowing you're about to re-list a specific unit at market. Private action you control. Belongs in attestation, never trading.
@@ -87,6 +87,21 @@ Two live SoMa markets. One resolution you can watch happen. **Play money on purp
 ## The horizon
 
 A neighborhood is a tribe with concentrated knowledge. Give it an instrument and its wisdom becomes legible — to itself first, and to capital on the tribe's terms. Later: autonomous resolvers with onchain identity, staked reputation, and provenance for every settlement. Instruments, not oracles-by-decree.
+
+## Beyond housing
+
+The recipe — public data + local expertise + accountable attestation — isn't specific to rent. Same mechanism, new domains:
+
+- Wildfire and evacuation forecasts
+- Supply chain disruption
+- Public health signals
+- Permitting and construction timelines
+- Homelessness services capacity
+- Infrastructure maintenance backlogs
+
+Housing is the wedge. The platform is the point.
+
+Prediction markets have existed for decades. We believe the missing layer isn't another market — it's trust infrastructure that connects public data, human testimony, and AI into one accountable forecasting system.
 
 *Places hold knowledge. This makes it tradable without making it extractable.*
 
