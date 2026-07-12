@@ -15,7 +15,9 @@
 html{scroll-behavior:smooth}
 body{background:var(--ink);color:var(--cream);font-family:'Fraunces',serif;font-weight:300;line-height:1.65;overflow-x:hidden}
 ::selection{background:var(--gold);color:var(--ink)}
-section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:12vh 24px;max-width:740px;margin:0 auto;position:relative}
+section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:12vh 24px;max-width:740px;margin:0 auto;position:relative;z-index:1}
+#arrowField{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none}
+footer{position:relative;z-index:1}
 .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:1.6rem}
 h1{font-size:clamp(2.6rem,8vw,4.6rem);font-weight:900;font-variation-settings:'opsz' 144;line-height:1.04;letter-spacing:-.01em}
 h2{font-size:clamp(1.8rem,5.5vw,2.8rem);font-weight:600;line-height:1.12;margin-bottom:1.4rem}
@@ -111,6 +113,7 @@ a{color:var(--gold)}
 </head>
 <body>
 
+<canvas id="arrowField" aria-hidden="true"></canvas>
 <a href="/slides" class="slides-link">Slides ↗</a>
 
 <section id="hero">
@@ -475,6 +478,106 @@ if ('modelContext' in navigator) {
   document.getElementById('webmcpStatus').textContent =
     "This browser doesn't support navigator.modelContext yet (rolling out through 2026) — the tools are still registered in the page source, and the same functionality is live at /api/mcp for any MCP client today.";
 }
+</script>
+<script>
+// Swarm of arrows drifting over the page; the cursor acts as a soft
+// gravity well. Fixed to the viewport so it reads as one continuous
+// field behind the scrolling content, not a per-section effect.
+(function(){
+  const canvas = document.getElementById('arrowField');
+  if (!canvas) return;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const shotMode = new URLSearchParams(location.search).has('shot');
+  if (reduceMotion || shotMode) { canvas.style.display = 'none'; return; }
+
+  const ctx = canvas.getContext('2d');
+  let W, H, DPR;
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const mouse = { x: W / 2, y: H / 2, active: false };
+  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; });
+  window.addEventListener('mouseleave', () => { mouse.active = false; });
+  window.addEventListener('touchmove', e => {
+    if (e.touches[0]) { mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY; mouse.active = true; }
+  }, { passive: true });
+
+  const COLORS = ['#d9a441', '#2a7a74', '#f2ead8'];
+  const N = Math.max(18, Math.min(40, Math.floor((W * H) / 34000)));
+  const arrows = Array.from({ length: N }, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    vx: (Math.random() - 0.5) * 0.6, vy: (Math.random() - 0.5) * 0.6,
+    wander: Math.random() * Math.PI * 2,
+    size: 6 + Math.random() * 7,
+    color: COLORS[Math.floor(Math.random() * COLORS.length)]
+  }));
+
+  const MAX_SPEED = 2.6;
+  const ATTRACT_RADIUS = 260;
+  const ATTRACT_FORCE = 0.14;
+
+  function step(){
+    ctx.clearRect(0, 0, W, H);
+
+    if (mouse.active) {
+      const g = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, ATTRACT_RADIUS);
+      g.addColorStop(0, 'rgba(217,164,65,0.10)');
+      g.addColorStop(1, 'rgba(217,164,65,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    for (const a of arrows) {
+      a.wander += (Math.random() - 0.5) * 0.5;
+      a.vx += Math.cos(a.wander) * 0.02;
+      a.vy += Math.sin(a.wander) * 0.02;
+
+      if (mouse.active) {
+        const dx = mouse.x - a.x, dy = mouse.y - a.y;
+        const dist = Math.hypot(dx, dy) || 1;
+        if (dist < ATTRACT_RADIUS) {
+          const pull = ATTRACT_FORCE * (1 - dist / ATTRACT_RADIUS);
+          a.vx += (dx / dist) * pull;
+          a.vy += (dy / dist) * pull;
+        }
+      }
+
+      const sp = Math.hypot(a.vx, a.vy);
+      if (sp > MAX_SPEED) { a.vx = a.vx / sp * MAX_SPEED; a.vy = a.vy / sp * MAX_SPEED; }
+      a.vx *= 0.99; a.vy *= 0.99;
+
+      a.x += a.vx; a.y += a.vy;
+      if (a.x < -20) a.x = W + 20; if (a.x > W + 20) a.x = -20;
+      if (a.y < -20) a.y = H + 20; if (a.y > H + 20) a.y = -20;
+
+      const angle = Math.atan2(a.vy, a.vx);
+      ctx.save();
+      ctx.translate(a.x, a.y);
+      ctx.rotate(angle);
+      ctx.beginPath();
+      ctx.moveTo(a.size, 0);
+      ctx.lineTo(-a.size * 0.6, a.size * 0.5);
+      ctx.lineTo(-a.size * 0.3, 0);
+      ctx.lineTo(-a.size * 0.6, -a.size * 0.5);
+      ctx.closePath();
+      ctx.globalAlpha = 0.55;
+      ctx.shadowColor = a.color;
+      ctx.shadowBlur = 6;
+      ctx.fillStyle = a.color;
+      ctx.fill();
+      ctx.restore();
+    }
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+})();
 </script>
 </body>
 </html>
